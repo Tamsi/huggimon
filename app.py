@@ -68,14 +68,14 @@ def _compare_cards(username_a: str, username_b: str, style: str) -> tuple:
 
 styles = list(STYLE_THEMES.keys())
 
-demo = gr.Blocks(title="HuggiMon")
+_demo = gr.Blocks(title="HuggiMon")
 
 card_css = """
 .hcard { margin: 0 auto; }
 .card-row { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
 """
 
-with demo:
+with _demo:
     gr.Markdown("# 🤗✨ HuggiMon")
     gr.Markdown("Generate your **AI Trainer Card** from your Hugging Face profile. Share it, download it, compare it.")
 
@@ -131,7 +131,7 @@ with demo:
 
 
 # ---------------------------------------------------------------------------
-# Custom card API routes (shared between parent app and Gradio app)
+# Custom card API routes
 # ---------------------------------------------------------------------------
 
 def _api_card_png(username: str, style: str = "Starter"):
@@ -214,22 +214,23 @@ custom_routes = [
 
 fastapi_app = FastAPI()
 
-# HF Spaces may serve either the Gradio Blocks app directly or the mounted app,
-# so register the custom routes in both places.
+# Register the custom routes on the Gradio app so they are present when the
+# Space runtime serves the Gradio app directly.
 from starlette.routing import Mount
 
 for custom_route in reversed(custom_routes):
-    demo.app.routes.insert(1, custom_route)
+    _demo.app.routes.insert(1, custom_route)
 
 app = gr.mount_gradio_app(
     fastapi_app,
-    demo,
+    _demo,
     path="/",
     theme=gr.themes.Soft(),
     css=card_css,
     ssr_mode=False,
 )
 
+# Also register the routes on the mounted Gradio app for local uvicorn usage.
 for route in app.routes:
     if isinstance(route, Mount):
         for custom_route in reversed(custom_routes):
@@ -237,4 +238,4 @@ for route in app.routes:
         break
 
 if __name__ == "__main__":
-    demo.launch()
+    _demo.launch()
