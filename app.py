@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from src.card_html import STYLE_THEMES, render_card_html
 from src.card_renderer import render_png
 from src.hf_fetcher import fetch_hf_profile
-from src.scoring import CardData, build_card
+from src.scoring import build_card
 
 # ---------------------------------------------------------------------------
 # Build the card data / assets used by both UI and API routes
