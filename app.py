@@ -8,6 +8,7 @@ from pathlib import Path
 import gradio as gr
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, Response
+from fastapi.routing import APIRoute
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -128,15 +129,12 @@ with demo:
         outputs=[compare_html_a, compare_img_a, compare_html_b, compare_img_b, compare_links],
     )
 
+
 # ---------------------------------------------------------------------------
-# FastAPI app with custom card routes
+# Custom card API routes (shared between parent app and Gradio app)
 # ---------------------------------------------------------------------------
 
-fastapi_app = FastAPI()
-
-
-@fastapi_app.get("/api/card/{username}.png")
-def api_card_png(username: str, style: str = "Starter"):
+def _api_card_png(username: str, style: str = "Starter"):
     style = style if style in STYLE_THEMES else "Starter"
     try:
         profile = fetch_hf_profile(username)
@@ -147,8 +145,7 @@ def api_card_png(username: str, style: str = "Starter"):
     return Response(content=png_bytes, media_type="image/png", headers={"Cache-Control": "public, max-age=300"})
 
 
-@fastapi_app.get("/api/card/{username}")
-def api_card_json(username: str):
+def _api_card_json(username: str):
     try:
         profile = fetch_hf_profile(username)
     except ValueError as e:
@@ -182,8 +179,7 @@ def api_card_json(username: str):
     }
 
 
-@fastapi_app.get("/card/{username}")
-def card_page(username: str, request: Request):
+def _card_page(username: str, request: Request):
     share = _share_url(username, request=request)
     app_url = f"{request.url.scheme}://{request.headers.get('host', f'{SPACE_OWNER}-{SPACE_NAME}.hf.space')}"
     return HTMLResponse(f"""<!DOCTYPE html>
@@ -210,6 +206,14 @@ def card_page(username: str, request: Request):
 </html>""")
 
 
+custom_routes = [
+    APIRoute("/api/card/{username}.png", _api_card_png, methods=["GET"]),
+    APIRoute("/api/card/{username}", _api_card_json, methods=["GET"]),
+    APIRoute("/card/{username}", _card_page, methods=["GET"]),
+]
+
+fastapi_app = FastAPI()
+
 app = gr.mount_gradio_app(
     fastapi_app,
     demo,
@@ -217,6 +221,17 @@ app = gr.mount_gradio_app(
     theme=gr.themes.Soft(),
     css=card_css,
 )
+
+# HF Spaces serves the mounted Gradio app directly, so the custom routes must live
+# inside it. Insert them right after the OpenAPI route to take precedence over
+# Gradio's catch-all routes.
+from starlette.routing import Mount
+
+for route in app.routes:
+    if isinstance(route, Mount):
+        for custom_route in reversed(custom_routes):
+            route.app.routes.insert(1, custom_route)
+        break
 
 if __name__ == "__main__":
     demo.launch()
