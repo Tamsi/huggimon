@@ -214,6 +214,13 @@ custom_routes = [
 
 fastapi_app = FastAPI()
 
+# HF Spaces may serve either the Gradio Blocks app directly or the mounted app,
+# so register the custom routes in both places.
+from starlette.routing import Mount
+
+for custom_route in reversed(custom_routes):
+    demo.app.routes.insert(1, custom_route)
+
 app = gr.mount_gradio_app(
     fastapi_app,
     demo,
@@ -221,11 +228,6 @@ app = gr.mount_gradio_app(
     theme=gr.themes.Soft(),
     css=card_css,
 )
-
-# HF Spaces serves the mounted Gradio app directly, so the custom routes must live
-# inside it. Insert them right after the OpenAPI route to take precedence over
-# Gradio's catch-all routes.
-from starlette.routing import Mount
 
 for route in app.routes:
     if isinstance(route, Mount):
