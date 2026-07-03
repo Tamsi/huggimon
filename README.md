@@ -8,6 +8,7 @@ sdk_version: 6.19.0
 app_file: app.py
 short_description: Generate your AI trainer card from your Hugging Face profile
 python_version: "3.12"
+ssr_mode: false
 ---
 
 # HuggiMon 🤗✨

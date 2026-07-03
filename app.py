@@ -227,6 +227,7 @@ app = gr.mount_gradio_app(
     path="/",
     theme=gr.themes.Soft(),
     css=card_css,
+    ssr_mode=False,
 )
 
 for route in app.routes:
