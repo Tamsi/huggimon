@@ -1,4 +1,4 @@
-"""HuggiMon Space entrypoint: Gradio UI + FastAPI card routes."""
+"""HuggiMon Space entrypoint: Gradio Server + custom card routes."""
 
 import os
 import sys
@@ -6,9 +6,8 @@ from io import BytesIO
 from pathlib import Path
 
 import gradio as gr
-from fastapi import FastAPI, Request
+from fastapi import Request
 from fastapi.responses import HTMLResponse, Response
-from fastapi.routing import APIRoute
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -68,14 +67,12 @@ def _compare_cards(username_a: str, username_b: str, style: str) -> tuple:
 
 styles = list(STYLE_THEMES.keys())
 
-_demo = gr.Blocks(title="HuggiMon")
-
 card_css = """
 .hcard { margin: 0 auto; }
 .card-row { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
 """
 
-with _demo:
+with gr.Blocks(title="HuggiMon") as _demo:
     gr.Markdown("# 🤗✨ HuggiMon")
     gr.Markdown("Generate your **AI Trainer Card** from your Hugging Face profile. Share it, download it, compare it.")
 
@@ -131,10 +128,14 @@ with _demo:
 
 
 # ---------------------------------------------------------------------------
-# Custom card API routes
+# Gradio Server + custom card routes
 # ---------------------------------------------------------------------------
 
-def _api_card_png(username: str, style: str = "Starter"):
+app = gr.Server(title="HuggiMon")
+
+
+@app.get("/api/card/{username}.png")
+def api_card_png(username: str, style: str = "Starter"):
     style = style if style in STYLE_THEMES else "Starter"
     try:
         profile = fetch_hf_profile(username)
@@ -145,7 +146,8 @@ def _api_card_png(username: str, style: str = "Starter"):
     return Response(content=png_bytes, media_type="image/png", headers={"Cache-Control": "public, max-age=300"})
 
 
-def _api_card_json(username: str):
+@app.get("/api/card/{username}")
+def api_card_json(username: str):
     try:
         profile = fetch_hf_profile(username)
     except ValueError as e:
@@ -179,7 +181,8 @@ def _api_card_json(username: str):
     }
 
 
-def _card_page(username: str, request: Request):
+@app.get("/card/{username}")
+def card_page(username: str, request: Request):
     share = _share_url(username, request=request)
     app_url = f"{request.url.scheme}://{request.headers.get('host', f'{SPACE_OWNER}-{SPACE_NAME}.hf.space')}"
     return HTMLResponse(f"""<!DOCTYPE html>
@@ -205,37 +208,7 @@ def _card_page(username: str, request: Request):
 </body>
 </html>""")
 
-
-custom_routes = [
-    APIRoute("/api/card/{username}.png", _api_card_png, methods=["GET"]),
-    APIRoute("/api/card/{username}", _api_card_json, methods=["GET"]),
-    APIRoute("/card/{username}", _card_page, methods=["GET"]),
-]
-
-fastapi_app = FastAPI()
-
-# Register the custom routes on the Gradio app so they are present when the
-# Space runtime serves the Gradio app directly.
-from starlette.routing import Mount
-
-for custom_route in reversed(custom_routes):
-    _demo.app.routes.insert(1, custom_route)
-
-app = gr.mount_gradio_app(
-    fastapi_app,
-    _demo,
-    path="/",
-    theme=gr.themes.Soft(),
-    css=card_css,
-    ssr_mode=False,
-)
-
-# Also register the routes on the mounted Gradio app for local uvicorn usage.
-for route in app.routes:
-    if isinstance(route, Mount):
-        for custom_route in reversed(custom_routes):
-            route.app.routes.insert(1, custom_route)
-        break
+gr.mount_gradio_app(app, _demo, path="/", theme=gr.themes.Soft(), css=card_css)
 
 if __name__ == "__main__":
-    _demo.launch()
+    app.launch()
