@@ -4,7 +4,7 @@ emoji: 🤗
 colorFrom: purple
 colorTo: pink
 sdk: gradio
-sdk_version: 6.15.1
+sdk_version: 6.19.0
 app_file: app.py
 short_description: Generate your AI trainer card from your Hugging Face profile
 python_version: "3.12"
@@ -75,10 +75,12 @@ Replace `ImTamsi` with your username and update the Space URL if you fork it.
 
 ## Local development
 
+Install the Space-managed dependencies locally for development:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install gradio huggingface_hub fastapi pillow python-multipart
 python app.py
 ```
 
