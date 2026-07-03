@@ -1,0 +1,5 @@
+# Core runtime dependencies beyond the Hugging Face Space base image.
+# Gradio, spaces and huggingface_hub are preinstalled on Spaces; do not pin them here.
+fastapi>=0.115.0
+pillow>=10.0.0
+python-multipart>=0.0.9
