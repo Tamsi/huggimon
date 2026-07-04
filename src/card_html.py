@@ -82,6 +82,25 @@ def _stat_bar(label: str, value: int, theme: dict) -> str:
     """
 
 
+def _energy_row(card: CardData, theme: dict) -> str:
+    label = f"Energy · {card.energy_name}"
+    if card.energy_count <= 0:
+        badges = f'<span style="font-size:12px;font-weight:700;color:{theme["subtext"]};">No energy yet</span>'
+    else:
+        badge = (
+            f'<span style="display:inline-flex;align-items:center;justify-content:center;'
+            f'width:22px;height:22px;border-radius:50%;font-size:12px;'
+            f'background:{theme["card"]};border:2px solid {theme["accent"]};">{card.energy_symbol}</span>'
+        )
+        badges = badge * card.energy_count
+    return f"""
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;color:{theme['accent']};text-transform:uppercase;letter-spacing:1px;">{label}</div>
+      <div style="display:flex;gap:6px;margin-top:6px;align-items:center;">{badges}</div>
+    </div>
+    """
+
+
 def render_card_html(card: CardData, style: str = "Starter", share_url: str = "") -> str:
     theme = STYLE_THEMES.get(style, STYLE_THEMES["Starter"])
     rarity_glyph = RARITY_GLYPHS.get(card.rarity, "★")
@@ -139,6 +158,8 @@ def render_card_html(card: CardData, style: str = "Starter", share_url: str = ""
           <div style="font-size:22px;font-weight:900;color:{theme['accent']};">{card.level}</div>
         </div>
       </div>
+
+      {_energy_row(card, theme)}
 
       <div style="background:{theme['card']};border-radius:16px;padding:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
         {stats_html}

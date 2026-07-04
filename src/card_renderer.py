@@ -5,12 +5,14 @@ from typing import Dict, Tuple
 
 from PIL import Image, ImageDraw, ImageFont
 
+from src.energy import energy_for_type
 from src.scoring import CardData
 
 
 CARD_WIDTH = 760
-CARD_HEIGHT = 1080
+CARD_HEIGHT = 1150
 PADDING = 44
+ENERGY_ROW_H = 70
 
 PALETTES: Dict[str, Dict[str, Tuple]] = {
     "Starter": {
@@ -144,6 +146,30 @@ def _draw_wrapped_text(draw, text, x, y, max_width, font, fill):
     return y
 
 
+def _draw_energy_row(draw, card, y, palette):
+    """Draw the energy label and up to 8 filled circles (emoji are skipped in PNG)."""
+    font_energy_label = _font(20, bold=True)
+    if card.energy_count <= 0:
+        _draw_text(draw, "ENERGY · NO ENERGY YET", (PADDING, y), font_energy_label, palette["accent"])
+        return
+
+    label = f"ENERGY · {card.energy_name}".upper()
+    _draw_text(draw, label, (PADDING, y), font_energy_label, palette["accent"])
+
+    color = energy_for_type(card.type).color
+    outline = tuple(int(c * 0.6) for c in color)
+    radius = 13
+    circle_y = y + 34
+    for i in range(min(card.energy_count, 8)):
+        cx = PADDING + radius + i * (radius * 2 + 10)
+        draw.ellipse(
+            [cx - radius, circle_y, cx + radius, circle_y + radius * 2],
+            fill=color,
+            outline=outline,
+            width=2,
+        )
+
+
 def _draw_stat_bar(draw, x, y, width, label, value, palette, font_label, font_value):
     label_text = f"{label}"
     value_text = f"{value}"
@@ -201,8 +227,11 @@ def render_png(card: CardData, style: str = "Starter") -> bytes:
     _draw_text(draw, "LEVEL", (PADDING + box_w + 24 + box_w // 2, box_y + 18), font_box_label, palette["accent"], anchor="mt")
     _draw_text(draw, str(card.level), (PADDING + box_w + 24 + box_w // 2, box_y + 60), font_level, palette["accent"], anchor="mt")
 
+    # Energy row
+    _draw_energy_row(draw, card, box_y + box_h + 16, palette)
+
     # Stats panel
-    stats_y = 300
+    stats_y = 300 + ENERGY_ROW_H
     stats_h = 460
     _rounded_rect(draw, [PADDING, stats_y, CARD_WIDTH - PADDING, stats_y + stats_h], 28, palette["card"])
 
