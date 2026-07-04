@@ -20,7 +20,7 @@ Generate your **AI Trainer Card** from your Hugging Face profile. Turn your Hub 
 1. Enter your Hugging Face username.
 2. HuggiMon fetches your public models, datasets, spaces, followers and activity.
 3. It computes your stats, type, rarity, level, attacks and evolution path.
-4. You get a beautiful card to preview, download as PNG and share.
+4. You get an animated Pokemon-TCG-style card — holographic shimmer, sparkles that scale with your rarity, and a 3D tilt effect on the profile page — plus a PNG to download and share.
 
 ## Follower Binder
 
@@ -38,7 +38,7 @@ Your public profile lives at a short URL — just like GitFut:
 https://imtamsi-huggimon.hf.space/ImTamsi
 ```
 
-Open that link to see your trainer card, energies, follower binder and share buttons. Legacy `/card/{username}` URLs redirect there automatically.
+Open that link to see your animated trainer card (with the 3D tilt effect), energies, follower binder and share buttons. Legacy `/card/{username}` URLs redirect there automatically.
 
 Add this snippet to your GitHub / Hugging Face README:
 
@@ -73,7 +73,9 @@ Each card also carries an **energy**: the energy type is derived from your card 
 
 **Rarity:** `Common`, `Rare`, `Epic`, `Legendary`
 
-## Card styles
+## PNG styles
+
+These styles apply to the downloadable/shareable PNG image only — the animated card has a single Pokemon-TCG look:
 
 - `Starter` — clean and accessible
 - `Legendary` — gold, fire and impact

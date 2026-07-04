@@ -15,9 +15,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.binder_fetcher import fetch_binder_page
 from src.binder_html import render_binder_html
-from src.card_html import STYLE_THEMES, render_card_html
+from src.card_html import STYLE_THEMES
 from src.card_renderer import render_png
 from src.hf_fetcher import fetch_hf_profile
+from src.pokecard_html import render_pokecard_html
 from src.profile_page import is_profile_username, render_profile_page
 from src.scoring import build_card
 
@@ -59,7 +60,8 @@ def _generate_card(username: str, style: str) -> tuple:
 
     card = build_card(profile)
     share = _share_url(username)
-    html = render_card_html(card, style=style, share_url=share)
+    # The HTML preview is the animated pokecard; `style` only affects the PNG.
+    html = render_pokecard_html(card)
 
     png_bytes = render_png(card, style=style)
     img = Image.open(BytesIO(png_bytes))
@@ -131,7 +133,7 @@ with gr.Blocks(title="HuggiMon") as _demo:
                 scale=2,
             )
             style_input = gr.Dropdown(
-                label="Card style",
+                label="PNG style",
                 choices=styles,
                 value="Starter",
                 scale=1,

@@ -4,7 +4,7 @@ import html
 
 from src.binder_fetcher import BinderPage
 from src.binder_html import render_binder_html
-from src.card_html import render_card_html
+from src.pokecard_html import render_pokecard_html
 from src.scoring import CardData
 
 RESERVED_USERNAMES = frozenset(
@@ -47,7 +47,9 @@ def render_profile_page(
     style: str = "Starter",
 ) -> str:
     """Return a complete HTML document for a public trainer profile."""
-    card_fragment = render_card_html(card, style=style, share_url=card_png_url)
+    # `style` is kept for URL compatibility (?style=) but the animated pokecard
+    # has a single look, so it is silently ignored here.
+    card_fragment = render_pokecard_html(card)
     binder_fragment = render_binder_html(binder)
 
     display_name = html.escape(card.display_name)

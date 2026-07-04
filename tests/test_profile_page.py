@@ -80,6 +80,7 @@ class TestRenderProfilePage:
         assert "@tamsi" in doc
         assert "https://huggimon.test/tamsi" in doc
         assert "Follower binder" in doc
+        assert "hpk-card" in doc
 
     def test_escapes_display_name(self):
         card = _sample_card()
