@@ -3,6 +3,7 @@
 import html
 from typing import List, Tuple
 
+from src.card_variant import variant_for_level
 from src.energy import COLORLESS, ENERGY_BY_TYPE, EnergyInfo
 from src.scoring import CardData
 
@@ -11,9 +12,6 @@ CARD_SET_SIZE = 151
 
 HOLO_CLASS = "hpk-holo"
 SPARKLE_CLASS = "hpk-sparkles"
-
-HOLO_RARITIES = {"Rare", "Epic", "Legendary"}
-SPARKLE_RARITIES = {"Epic", "Legendary"}
 
 RARITY_SYMBOLS = {"Common": "●", "Rare": "◆", "Epic": "★", "Legendary": "★"}
 
@@ -67,8 +65,8 @@ def _weakness(card: CardData) -> str:
 def _safe_rarity(card: CardData) -> str:
     """Allowlist the rarity value; unknown strings fall back to Common.
 
-    The rarity feeds CSS class names and overlay gating, so an allowlist is
-    safer than escaping.
+    The rarity feeds a CSS class name and the footer symbol, so an allowlist
+    is safer than escaping.
     """
     return card.rarity if card.rarity in RARITY_SYMBOLS else "Common"
 
@@ -120,11 +118,9 @@ _BASE_CSS = """
   font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   box-shadow:0 20px 45px -18px rgba(0,0,0,0.55),0 0 26px -6px var(--hpk-glow);
   animation:hpk-float 6s ease-in-out infinite;will-change:transform;}
-.hpk-common{background:#cbd5e1;}
-.hpk-rare,.hpk-epic{background:linear-gradient(135deg,#f5d76e,#b8860b,#f5d76e);}
-.hpk-legendary{background:linear-gradient(90deg,#ff004d,#ff7a00,#ffe600,#00e05a,#00b3ff,#8a2be2,#ff004d);
-  background-size:400% 100%;
-  animation:hpk-float 6s ease-in-out infinite,hpk-rainbow 8s linear infinite;}
+.hpk-v-standard,.hpk-v-holo{background:#cbd5e1;}
+.hpk-v-ex{background:linear-gradient(135deg,#dfe3e8,#8e959e,#c8ccd4);}
+.hpk-v-gx{background:linear-gradient(135deg,#f5d76e,#b8860b,#f5d76e);}
 .hpk-inner{position:relative;width:100%;height:100%;border-radius:10px;overflow:hidden;
   background:linear-gradient(180deg,var(--hpk-c1),var(--hpk-c2));
   display:flex;flex-direction:column;padding:12px;box-sizing:border-box;}
@@ -169,11 +165,32 @@ _BASE_CSS = """
   background:radial-gradient(circle at var(--hpk-mx,35%) var(--hpk-my,30%),rgba(255,255,255,0.5),rgba(255,255,255,0) 58%);
   background-size:200% 200%;mix-blend-mode:soft-light;animation:hpk-glare 7s ease-in-out infinite;}
 @keyframes hpk-float{0%,100%{transform:translateY(-6px);}50%{transform:translateY(6px);}}
-@keyframes hpk-rainbow{0%{background-position:0% 50%;}100%{background-position:400% 50%;}}
 @keyframes hpk-glare{0%,100%{background-position:0% 0%;}50%{background-position:100% 100%;}}
 @media (prefers-reduced-motion: reduce){
   .hpk-card,.hpk-layer{animation:none !important;}
 }
+"""
+
+_BADGE_CSS = """
+.hpk-badge{font-size:11px;font-style:italic;font-weight:800;padding:1px 8px;border-radius:999px;
+  white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.3);}
+.hpk-v-ex .hpk-badge{background:linear-gradient(180deg,#f4f5f7,#c7ccd4);color:#1f2937;}
+.hpk-v-gx .hpk-badge,.hpk-v-gold .hpk-badge{background:linear-gradient(180deg,#ffe9a0,#d4af37);color:#5b3a00;}
+.hpk-v-shiny .hpk-badge{background:linear-gradient(90deg,#ff004d,#ff7a00,#ffe600,#00e05a,#00b3ff,#8a2be2);color:#fff;}
+"""
+
+_RAINBOW_FRAME_CSS = """
+.hpk-v-shiny{background:linear-gradient(90deg,#ff004d,#ff7a00,#ffe600,#00e05a,#00b3ff,#8a2be2,#ff004d);
+  background-size:400% 100%;
+  animation:hpk-float 6s ease-in-out infinite,hpk-rainbow 8s linear infinite;}
+@keyframes hpk-rainbow{0%{background-position:0% 50%;}100%{background-position:400% 50%;}}
+"""
+
+_GOLD_FRAME_CSS = """
+.hpk-v-gold{background:linear-gradient(120deg,#f5d76e,#b8860b,#ffe9a0,#b8860b,#f5d76e);
+  background-size:300% 100%;
+  animation:hpk-float 6s ease-in-out infinite,hpk-goldshift 10s linear infinite;}
+@keyframes hpk-goldshift{0%{background-position:0% 50%;}100%{background-position:300% 50%;}}
 """
 
 _HOLO_CSS = """
@@ -231,6 +248,7 @@ def render_pokecard_html(card: CardData) -> str:
     """Return a self-contained Pokemon-style card fragment (markup + style + tilt script)."""
     rarity = _safe_rarity(card)
     rarity_class = f"hpk-{rarity.lower()}"
+    variant = variant_for_level(card.level)
     symbol = html.escape(card.energy_symbol)
     hp = _hp(card)
     rows = _attack_rows(card)
@@ -238,19 +256,27 @@ def render_pokecard_html(card: CardData) -> str:
 
     overlays = '<div class="hpk-layer hpk-glare"></div>'
     css = _BASE_CSS
-    if rarity in HOLO_RARITIES:
+    badge_html = ""
+    if variant.badge:
+        badge_html = f'<span class="hpk-badge">{html.escape(variant.badge)}</span>'
+        css += _BADGE_CSS
+    if variant.rainbow_frame:
+        css += _RAINBOW_FRAME_CSS
+    if variant.gold_frame:
+        css += _GOLD_FRAME_CSS
+    if variant.holo:
         overlays += f'<div class="hpk-layer {HOLO_CLASS}"></div>'
         css += _HOLO_CSS
-    if rarity in SPARKLE_RARITIES:
+    if variant.sparkles:
         overlays += f'<div class="hpk-layer {SPARKLE_CLASS}"></div>'
         css += _SPARKLE_CSS
 
     return f"""
-<div class="hpk-card {rarity_class}" style="{_color_vars(card)}">
+<div class="hpk-card {rarity_class} {variant.css_class}" style="{_color_vars(card)}">
   <div class="hpk-inner">
     <div class="hpk-header">
       <span class="hpk-stage">{_stage(card)}</span>
-      <span class="hpk-name">{html.escape(card.display_name)}</span>
+      <span class="hpk-name">{html.escape(card.display_name)}</span>{badge_html}
       <span class="hpk-hp"><span class="hpk-hp-label">HP</span> {hp}</span>
       <span class="hpk-energy" title="{html.escape(card.energy_name, quote=True)}">{symbol}</span>
     </div>

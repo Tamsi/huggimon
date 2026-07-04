@@ -143,19 +143,47 @@ class TestFragmentContent:
         assert "huggimon.space" in doc
 
 
-class TestRarity:
-    def test_legendary_has_sparkles_and_class(self):
-        doc = render_pokecard_html(_make_card(rarity="Legendary"))
-        assert "hpk-legendary" in doc
-        assert SPARKLE_CLASS in doc
-        assert HOLO_CLASS in doc
-
-    def test_common_has_no_holo_or_sparkles(self):
-        doc = render_pokecard_html(_make_card(rarity="Common"))
-        assert "hpk-common" in doc
-        assert SPARKLE_CLASS not in doc
+class TestVariant:
+    def test_level_20_standard_has_no_effects(self):
+        doc = render_pokecard_html(_make_card(level=20))
+        assert "hpk-v-standard" in doc
         assert HOLO_CLASS not in doc
+        assert SPARKLE_CLASS not in doc
 
+    def test_level_30_holo_has_holo_only(self):
+        doc = render_pokecard_html(_make_card(level=30))
+        assert "hpk-v-holo" in doc
+        assert HOLO_CLASS in doc
+        assert SPARKLE_CLASS not in doc
+
+    def test_level_70_gx_has_holo_and_sparkles(self):
+        doc = render_pokecard_html(_make_card(level=70))
+        assert "hpk-v-gx" in doc
+        assert HOLO_CLASS in doc
+        assert SPARKLE_CLASS in doc
+
+    def test_level_90_shiny_class_present(self):
+        doc = render_pokecard_html(_make_card(level=90))
+        assert "hpk-v-shiny" in doc
+
+    def test_level_110_gold_has_holo_and_sparkles(self):
+        doc = render_pokecard_html(_make_card(level=110))
+        assert "hpk-v-gold" in doc
+        assert HOLO_CLASS in doc
+        assert SPARKLE_CLASS in doc
+
+
+class TestBadge:
+    def test_level_50_ex_shows_badge_capsule(self):
+        doc = render_pokecard_html(_make_card(level=50))
+        assert 'class="hpk-badge">ex<' in doc
+
+    def test_level_20_standard_has_no_badge(self):
+        doc = render_pokecard_html(_make_card(level=20))
+        assert "hpk-badge" not in doc
+
+
+class TestRarity:
     def test_unknown_rarity_falls_back_to_common(self):
         payload = 'X" onmouseover="alert(1)'
         doc = render_pokecard_html(_make_card(rarity=payload))
@@ -201,9 +229,10 @@ class _TagCounter(HTMLParser):
 
 class TestWellFormedness:
     def test_div_and_span_tags_balanced(self):
-        for rarity in ("Common", "Rare", "Epic", "Legendary"):
+        # One level per variant tier so badge/overlay markup is all covered.
+        for level in (20, 30, 50, 70, 90, 110):
             parser = _TagCounter()
-            parser.feed(render_pokecard_html(_make_card(rarity=rarity)))
+            parser.feed(render_pokecard_html(_make_card(level=level)))
             parser.close()
             for tag in ("div", "span"):
-                assert parser.starts[tag] == parser.ends[tag], (rarity, tag)
+                assert parser.starts[tag] == parser.ends[tag], (level, tag)
