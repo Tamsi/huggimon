@@ -2,7 +2,7 @@
 
 import math
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from src.energy import energy_count_from_likes, energy_for_type
 from src.hf_fetcher import HfProfileData
@@ -59,6 +59,14 @@ class CardData:
     energy_name: str = "Colorless"
     energy_symbol: str = "✦"
     energy_count: int = 0
+    avatar_url: Optional[str] = None
+
+
+def _normalize_avatar_url(url: Optional[str]) -> Optional[str]:
+    # Same rule as src.binder_fetcher: HF returns relative avatar paths for defaults.
+    if url and url.startswith("/"):
+        return "https://huggingface.co" + url
+    return url
 
 
 def _clamp(value: float) -> int:
@@ -239,4 +247,5 @@ def build_card(data: HfProfileData) -> CardData:
         energy_name=energy.name,
         energy_symbol=energy.symbol,
         energy_count=energy_count_from_likes(data.total_likes),
+        avatar_url=_normalize_avatar_url(data.user.avatar_url),
     )

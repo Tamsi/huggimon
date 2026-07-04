@@ -62,9 +62,11 @@ class TestEnergyCountFromLikes:
         assert energy_count_from_likes(-5) == 0
 
 
-def _profile(models=None, datasets=None, spaces=None) -> HfProfileData:
+def _profile(models=None, datasets=None, spaces=None, avatar_url=None) -> HfProfileData:
     return HfProfileData(
-        user=UserProfile(username="testuser", display_name="Test User"),
+        user=UserProfile(
+            username="testuser", display_name="Test User", avatar_url=avatar_url
+        ),
         models=models or [],
         datasets=datasets or [],
         spaces=spaces or [],
@@ -103,3 +105,18 @@ class TestBuildCardEnergy:
         assert card.energy_count == 0
         # Type is always one of the known types, so energy is never Colorless here
         assert card.energy_name == energy_for_type(card.type).name
+
+
+class TestBuildCardAvatar:
+    def test_relative_avatar_is_prefixed_with_hf_host(self):
+        card = build_card(_profile(avatar_url="/avatars/x.svg"))
+        assert card.avatar_url == "https://huggingface.co/avatars/x.svg"
+
+    def test_absolute_avatar_is_kept_as_is(self):
+        url = "https://cdn-avatars.huggingface.co/v1/production/uploads/abc.png"
+        card = build_card(_profile(avatar_url=url))
+        assert card.avatar_url == url
+
+    def test_missing_avatar_stays_none(self):
+        card = build_card(_profile())
+        assert card.avatar_url is None
