@@ -94,6 +94,13 @@ python app.py
 
 Open http://localhost:7860 and enter a Hugging Face username.
 
+Run the test suite:
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest tests/ -v
+```
+
 ## License
 
 MIT
