@@ -104,6 +104,18 @@ class TestWeakness:
         for name in names:
             assert name in WEAKNESS_BY_ENERGY
 
+    def test_exact_weakness_pairs(self):
+        assert WEAKNESS_BY_ENERGY == {
+            "Fire": "Water",
+            "Water": "Lightning",
+            "Lightning": "Grass",
+            "Grass": "Fire",
+            "Psychic": "Metal",
+            "Metal": "Fire",
+            "Rainbow": "Psychic",
+            "Colorless": "Psychic",
+        }
+
     def test_lightning_is_weak_to_grass(self):
         assert _weakness(_make_card(energy_name="Lightning")) == "🌿"
 
@@ -143,6 +155,12 @@ class TestRarity:
         assert "hpk-common" in doc
         assert SPARKLE_CLASS not in doc
         assert HOLO_CLASS not in doc
+
+    def test_unknown_rarity_falls_back_to_common(self):
+        payload = 'X" onmouseover="alert(1)'
+        doc = render_pokecard_html(_make_card(rarity=payload))
+        assert "hpk-common" in doc
+        assert payload not in doc
 
 
 class TestEscaping:

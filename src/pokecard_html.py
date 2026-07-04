@@ -64,6 +64,15 @@ def _weakness(card: CardData) -> str:
     return ENERGY_BY_NAME[weak_name].symbol
 
 
+def _safe_rarity(card: CardData) -> str:
+    """Allowlist the rarity value; unknown strings fall back to Common.
+
+    The rarity feeds CSS class names and overlay gating, so an allowlist is
+    safer than escaping.
+    """
+    return card.rarity if card.rarity in RARITY_SYMBOLS else "Common"
+
+
 def _retreat(card: CardData) -> int:
     total_repos = card.total_models + card.total_datasets + card.total_spaces
     if total_repos < 10:
@@ -163,7 +172,7 @@ _BASE_CSS = """
 @keyframes hpk-rainbow{0%{background-position:0% 50%;}100%{background-position:400% 50%;}}
 @keyframes hpk-glare{0%,100%{background-position:0% 0%;}50%{background-position:100% 100%;}}
 @media (prefers-reduced-motion: reduce){
-  .hpk-card,.hpk-card > div{animation:none !important;}
+  .hpk-card,.hpk-layer{animation:none !important;}
 }
 """
 
@@ -220,19 +229,20 @@ _TILT_SCRIPT = """
 
 def render_pokecard_html(card: CardData) -> str:
     """Return a self-contained Pokemon-style card fragment (markup + style + tilt script)."""
-    rarity_class = f"hpk-{card.rarity.lower()}"
+    rarity = _safe_rarity(card)
+    rarity_class = f"hpk-{rarity.lower()}"
     symbol = html.escape(card.energy_symbol)
     hp = _hp(card)
     rows = _attack_rows(card)
     attacks_html = "".join(_attack_row_html(n, d, c, symbol) for n, d, c in rows)
 
-    overlays = '<div class="hpk-glare"></div>'
+    overlays = '<div class="hpk-layer hpk-glare"></div>'
     css = _BASE_CSS
-    if card.rarity in HOLO_RARITIES:
-        overlays += f'<div class="{HOLO_CLASS}"></div>'
+    if rarity in HOLO_RARITIES:
+        overlays += f'<div class="hpk-layer {HOLO_CLASS}"></div>'
         css += _HOLO_CSS
-    if card.rarity in SPARKLE_RARITIES:
-        overlays += f'<div class="{SPARKLE_CLASS}"></div>'
+    if rarity in SPARKLE_RARITIES:
+        overlays += f'<div class="hpk-layer {SPARKLE_CLASS}"></div>'
         css += _SPARKLE_CSS
 
     return f"""
@@ -255,7 +265,7 @@ def render_pokecard_html(card: CardData) -> str:
     <div class="hpk-footer">
       <span><span class="hpk-footer-label">weakness</span>{_weakness(card)}×2</span>
       <span><span class="hpk-footer-label">retreat</span>{"●" * _retreat(card)}</span>
-      <span><span class="hpk-footer-label">set</span>{RARITY_SYMBOLS.get(card.rarity, "●")} {card.level}/{CARD_SET_SIZE}</span>
+      <span><span class="hpk-footer-label">set</span>{RARITY_SYMBOLS[rarity]} {card.level}/{CARD_SET_SIZE}</span>
     </div>
     <div class="hpk-flavor">{html.escape(card.evolution)}</div>
     <div class="hpk-watermark">huggimon.space</div>
