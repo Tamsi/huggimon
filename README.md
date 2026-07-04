@@ -24,7 +24,7 @@ Generate your **AI Trainer Card** from your Hugging Face profile. Turn your Hub 
 
 ## Follower Binder
 
-Your followers fill your card binder: open the **Binder** tab, enter your username and browse your collection page by page. Each follower appears as a mini trainer card with its own level, stars and energies. Likes on your work become energies on your card — the more the community likes what you build, the more charged your card gets.
+Your followers fill your card binder: open the **Binder** tab, enter your username and browse your collection page by page. Each follower appears as a mini trainer card with its own level, stars and energies. Follower cards come in TCG variants (holo, ex, GX, shiny…) depending on their level. Likes on your work become energies on your card — the more the community likes what you build, the more charged your card gets.
 
 ## Live demo
 

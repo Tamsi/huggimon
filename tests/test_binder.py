@@ -272,7 +272,8 @@ class TestRenderBinderHtml:
             cards=[_mini(avatar_url="https://huggingface.co/avatars/1.svg")],
         )
         out = render_binder_html(binder)
-        assert '<img src="https://huggingface.co/avatars/1.svg"' in out
+        assert 'src="https://huggingface.co/avatars/1.svg"' in out
+        assert 'class="hpkm-avatar"' in out
 
     def test_stats_glyphs(self):
         binder = BinderPage(
@@ -298,3 +299,51 @@ class TestRenderBinderHtml:
         out = render_binder_html(binder)
         assert "✦" not in out
         assert "–" in out
+
+    def test_level_90_gets_shiny_variant_with_holo_overlay(self):
+        binder = BinderPage(
+            owner="prof-oak",
+            page=1,
+            total_pages=1,
+            total_followers=1,
+            cards=[_mini(level=90)],
+        )
+        out = render_binder_html(binder)
+        assert "hpk-v-shiny" in out
+        assert "hpkm-holo" in out
+
+    def test_level_10_has_no_holo_overlay(self):
+        binder = BinderPage(
+            owner="prof-oak",
+            page=1,
+            total_pages=1,
+            total_followers=1,
+            cards=[_mini(level=10)],
+        )
+        out = render_binder_html(binder)
+        assert "hpk-v-standard" in out
+        assert '"hpkm-layer hpkm-holo"' not in out
+
+    def test_level_50_gets_ex_badge(self):
+        binder = BinderPage(
+            owner="prof-oak",
+            page=1,
+            total_pages=1,
+            total_followers=1,
+            cards=[_mini(level=50)],
+        )
+        out = render_binder_html(binder)
+        assert "hpk-v-ex" in out
+        assert '<span class="hpkm-badge">ex</span>' in out
+
+    def test_display_name_escaped_in_mini_card_markup(self):
+        binder = BinderPage(
+            owner="prof-oak",
+            page=1,
+            total_pages=1,
+            total_followers=1,
+            cards=[_mini(display_name='<img src=x onerror="alert(1)">')],
+        )
+        out = render_binder_html(binder)
+        assert "<img src=x" not in out
+        assert "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;" in out
