@@ -4,6 +4,7 @@ import math
 from dataclasses import dataclass
 from typing import List, Tuple
 
+from src.energy import energy_count_from_likes, energy_for_type
 from src.hf_fetcher import HfProfileData
 
 
@@ -55,6 +56,9 @@ class CardData:
     total_followers: int
     total_downloads: int
     total_likes: int
+    energy_name: str = "Colorless"
+    energy_symbol: str = "✦"
+    energy_count: int = 0
 
 
 def _clamp(value: float) -> int:
@@ -214,6 +218,7 @@ def build_card(data: HfProfileData) -> CardData:
     rarity = _rarity_from_overall(overall)
     level = _level(overall)
     attacks, passive, evolution = _moves(type_name, stats)
+    energy = energy_for_type(type_name)
 
     return CardData(
         username=data.user.username,
@@ -231,4 +236,7 @@ def build_card(data: HfProfileData) -> CardData:
         total_followers=data.user.num_followers,
         total_downloads=data.total_downloads,
         total_likes=data.total_likes,
+        energy_name=energy.name,
+        energy_symbol=energy.symbol,
+        energy_count=energy_count_from_likes(data.total_likes),
     )

@@ -1,0 +1,2 @@
+# Development-only dependencies (not needed at runtime on the Space)
+pytest>=8.0

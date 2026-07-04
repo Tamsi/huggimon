@@ -178,6 +178,11 @@ def api_card_json(username: str):
             "downloads": card.total_downloads,
             "likes": card.total_likes,
         },
+        "energy": {
+            "name": card.energy_name,
+            "symbol": card.energy_symbol,
+            "count": card.energy_count,
+        },
     }
 
 
