@@ -76,7 +76,8 @@ GOLD = Variant(
 
 VARIANTS: tuple[Variant, ...] = (STANDARD, HOLO, EX, GX, SHINY, GOLD)
 
-# Minimum level required for each tier above Standard, in ascending order.
+# Minimum level required for each tier above Standard, highest first so the
+# first match in variant_for_level wins.
 _TIER_THRESHOLDS: tuple[tuple[int, Variant], ...] = (
     (105, GOLD),
     (85, SHINY),
