@@ -22,6 +22,10 @@ Generate your **AI Trainer Card** from your Hugging Face profile. Turn your Hub 
 3. It computes your stats, type, rarity, level, attacks and evolution path.
 4. You get a beautiful card to preview, download as PNG and share.
 
+## Follower Binder
+
+Your followers fill your card binder: open the **Binder** tab, enter your username and browse your collection page by page. Each follower appears as a mini trainer card with its own level, stars and energies. Likes on your work become energies on your card — the more the community likes what you build, the more charged your card gets.
+
 ## Live demo
 
 Visit the Space and try your username: https://huggingface.co/spaces/ImTamsi/huggimon
@@ -53,6 +57,8 @@ Replace `ImTamsi` with your username and update the Space URL if you fork it.
 | COMMUNITY | Followers + discussions |
 | DOCS | Documentation quality (model/dataset cards with descriptions) |
 
+Each card also carries an **energy**: the energy type is derived from your card type, and the energy count from your total likes. Both are exposed in the card API under the `energy` field (`name`, `symbol`, `count`).
+
 ## Types & rarity
 
 **Types:** `Code`, `Vision`, `Audio`, `NLP`, `Multimodal`, `Dataset`, `Agent`
@@ -70,8 +76,9 @@ Replace `ImTamsi` with your username and update the Space URL if you fork it.
 
 ## API endpoints
 
-- `GET /api/card/{username}` — JSON card metadata
+- `GET /api/card/{username}` — JSON card metadata (including the `energy` field)
 - `GET /api/card/{username}.png` — PNG card image
+- `GET /api/binder/{username}` — JSON binder page of follower mini-cards (optional `?page=` parameter)
 - `/card/{username}` — pre-filled card page
 
 ## Local development

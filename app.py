@@ -2,6 +2,7 @@
 
 import os
 import sys
+from dataclasses import asdict
 from io import BytesIO
 from pathlib import Path
 
@@ -12,6 +13,8 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+from src.binder_fetcher import fetch_binder_page
+from src.binder_html import render_binder_html
 from src.card_html import STYLE_THEMES, render_card_html
 from src.card_renderer import render_png
 from src.hf_fetcher import fetch_hf_profile
@@ -61,6 +64,39 @@ def _compare_cards(username_a: str, username_b: str, style: str) -> tuple:
     return html_a, img_a, html_b, img_b, f"{share_a}\n{share_b}"
 
 
+def _fetch_binder(username: str, page: int) -> tuple[str, str, int]:
+    """Fetch a binder page and return (html, page info, clamped page)."""
+    try:
+        binder = fetch_binder_page(username, page)
+    except ValueError as e:
+        raise gr.Error(str(e)) from e
+    html = render_binder_html(binder)
+    info = f"Page {binder.page}/{binder.total_pages} — {binder.total_followers} trainers"
+    return html, info, binder.page
+
+
+def _open_binder(username: str) -> tuple:
+    username = username.strip().lstrip("@")
+    if not username:
+        raise gr.Error("Please enter a Hugging Face username.")
+    html, info, page = _fetch_binder(username, 1)
+    return html, info, username, page
+
+
+def _turn_binder_page(username: str, page: int, delta: int) -> tuple:
+    if not username:
+        raise gr.Error("Open a binder first.")
+    return _fetch_binder(username, page + delta)
+
+
+def _binder_prev(username: str, page: int) -> tuple:
+    return _turn_binder_page(username, page, -1)
+
+
+def _binder_next(username: str, page: int) -> tuple:
+    return _turn_binder_page(username, page, 1)
+
+
 # ---------------------------------------------------------------------------
 # Gradio UI
 # ---------------------------------------------------------------------------
@@ -100,6 +136,25 @@ with gr.Blocks(title="HuggiMon") as _demo:
             share_url = gr.Textbox(label="Shareable image URL", interactive=False)
             readme_snippet = gr.Code(label="README embed snippet", language="markdown", interactive=False)
 
+    with gr.Tab("Binder"):
+        with gr.Row():
+            binder_username_input = gr.Textbox(
+                label="Hugging Face username",
+                placeholder="e.g. tamsi",
+                scale=2,
+            )
+        binder_open_btn = gr.Button("Open binder", variant="primary")
+
+        binder_username_state = gr.State("")
+        binder_page_state = gr.State(1)
+
+        with gr.Row():
+            binder_prev_btn = gr.Button("◀ Prev")
+            binder_next_btn = gr.Button("Next ▶")
+
+        binder_html = gr.HTML(label="Binder")
+        binder_info = gr.Markdown()
+
     with gr.Tab("Compare"):
         with gr.Row():
             compare_a = gr.Textbox(label="Trainer A", placeholder="e.g. tamsi")
@@ -124,6 +179,21 @@ with gr.Blocks(title="HuggiMon") as _demo:
         fn=_compare_cards,
         inputs=[compare_a, compare_b, compare_style],
         outputs=[compare_html_a, compare_img_a, compare_html_b, compare_img_b, compare_links],
+    )
+    binder_open_btn.click(
+        fn=_open_binder,
+        inputs=[binder_username_input],
+        outputs=[binder_html, binder_info, binder_username_state, binder_page_state],
+    )
+    binder_prev_btn.click(
+        fn=_binder_prev,
+        inputs=[binder_username_state, binder_page_state],
+        outputs=[binder_html, binder_info, binder_page_state],
+    )
+    binder_next_btn.click(
+        fn=_binder_next,
+        inputs=[binder_username_state, binder_page_state],
+        outputs=[binder_html, binder_info, binder_page_state],
     )
 
 
@@ -183,6 +253,21 @@ def api_card_json(username: str):
             "symbol": card.energy_symbol,
             "count": card.energy_count,
         },
+    }
+
+
+@app.get("/api/binder/{username}")
+def api_binder_json(username: str, page: int = 1):
+    try:
+        binder = fetch_binder_page(username, page)
+    except ValueError as e:
+        return {"error": str(e)}, 404
+    return {
+        "owner": binder.owner,
+        "page": binder.page,
+        "total_pages": binder.total_pages,
+        "total_followers": binder.total_followers,
+        "cards": [asdict(card) for card in binder.cards],
     }
 
 
