@@ -222,7 +222,7 @@ def render_profile_page(
       z-index: 100;
     }}
     .toast.show {{ transform: translateX(-50%) translateY(0); opacity: 1; }}
-    .hcard {{ margin: 0 auto; }}
+    .hpk-card {{ margin: 0 auto; }}
   </style>
 </head>
 <body>
