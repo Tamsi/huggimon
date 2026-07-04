@@ -162,15 +162,32 @@ class TestVariant:
         assert HOLO_CLASS in doc
         assert SPARKLE_CLASS in doc
 
-    def test_level_90_shiny_class_present(self):
+    def test_level_90_shiny_has_all_effects_and_rainbow_frame(self):
         doc = render_pokecard_html(_make_card(level=90))
         assert "hpk-v-shiny" in doc
+        assert HOLO_CLASS in doc
+        assert SPARKLE_CLASS in doc
+        # Rainbow frame CSS is emitted: keyframe plus the frame rule.
+        assert "hpk-rainbow" in doc
+        assert ".hpk-v-shiny{" in doc
 
     def test_level_110_gold_has_holo_and_sparkles(self):
         doc = render_pokecard_html(_make_card(level=110))
         assert "hpk-v-gold" in doc
         assert HOLO_CLASS in doc
         assert SPARKLE_CLASS in doc
+
+    def test_level_20_standard_emits_no_variant_css(self):
+        # Neither markup nor CSS for gated features may leak into Standard.
+        doc = render_pokecard_html(_make_card(level=20))
+        for marker in (
+            "hpk-rainbow",
+            "hpk-goldshift",
+            "hpk-badge",
+            "hpk-holo",
+            "hpk-sparkles",
+        ):
+            assert marker not in doc, marker
 
 
 class TestBadge:
