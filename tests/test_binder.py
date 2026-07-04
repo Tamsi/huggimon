@@ -322,7 +322,9 @@ class TestRenderBinderHtml:
         )
         out = render_binder_html(binder)
         assert "hpk-v-standard" in out
-        assert '"hpkm-layer hpkm-holo"' not in out
+        # Neither the overlay markup nor the conditional holo CSS chunk.
+        assert "hpkm-holo" not in out
+        assert "hpkm-sparkles" not in out
 
     def test_level_50_gets_ex_badge(self):
         binder = BinderPage(
