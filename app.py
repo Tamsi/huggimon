@@ -117,7 +117,6 @@ def _binder_next(username: str, page: int) -> tuple:
 styles = list(STYLE_THEMES.keys())
 
 card_css = """
-.hcard { margin: 0 auto; }
 .card-row { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
 """
 
@@ -172,7 +171,7 @@ with gr.Blocks(title="HuggiMon") as _demo:
         with gr.Row():
             compare_a = gr.Textbox(label="Trainer A", placeholder="e.g. tamsi")
             compare_b = gr.Textbox(label="Trainer B", placeholder="e.g. julien-c")
-            compare_style = gr.Dropdown(label="Style", choices=styles, value="Starter")
+            compare_style = gr.Dropdown(label="PNG style", choices=styles, value="Starter")
         compare_btn = gr.Button("Compare", variant="primary")
 
         with gr.Row(elem_classes="card-row"):
