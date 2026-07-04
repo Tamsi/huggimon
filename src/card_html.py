@@ -1,5 +1,7 @@
 """Generate the HTML/CSS card preview for the Gradio UI."""
 
+import html
+
 from src.scoring import CardData
 
 
@@ -83,7 +85,7 @@ def _stat_bar(label: str, value: int, theme: dict) -> str:
 
 
 def _energy_row(card: CardData, theme: dict) -> str:
-    label = f"Energy · {card.energy_name}"
+    label = f"Energy · {html.escape(card.energy_name)}"
     if card.energy_count <= 0:
         badges = f'<span style="font-size:12px;font-weight:700;color:{theme["subtext"]};">No energy yet</span>'
     else:
@@ -104,7 +106,13 @@ def _energy_row(card: CardData, theme: dict) -> str:
 def render_card_html(card: CardData, style: str = "Starter", share_url: str = "") -> str:
     theme = STYLE_THEMES.get(style, STYLE_THEMES["Starter"])
     rarity_glyph = RARITY_GLYPHS.get(card.rarity, "★")
-    attacks = " · ".join(card.attacks) if card.attacks else "Learning"
+    display_name = html.escape(card.display_name)
+    card_type = html.escape(card.type)
+    rarity = html.escape(card.rarity)
+    passive = html.escape(card.passive)
+    evolution = html.escape(card.evolution)
+    energy_name = html.escape(card.energy_name)
+    attacks = " · ".join(html.escape(a) for a in card.attacks) if card.attacks else "Learning"
 
     stats_html = "".join(
         [
@@ -140,18 +148,18 @@ def render_card_html(card: CardData, style: str = "Starter", share_url: str = ""
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
         <div>
           <div style="font-size:11px;letter-spacing:1.5px;font-weight:800;color:{theme['accent']};text-transform:uppercase;">AI Trainer Card</div>
-          <h2 style="margin:4px 0 0;font-size:28px;letter-spacing:-0.5px;">{card.display_name}</h2>
+          <h2 style="margin:4px 0 0;font-size:28px;letter-spacing:-0.5px;">{display_name}</h2>
         </div>
         <div style="text-align:right;">
           <div style="font-size:22px;color:{theme['accent']};">{rarity_glyph}</div>
-          <div style="font-size:11px;font-weight:700;color:{theme['subtext']};">{card.rarity}</div>
+          <div style="font-size:11px;font-weight:700;color:{theme['subtext']};">{rarity}</div>
         </div>
       </div>
 
       <div style="display:flex;gap:12px;margin-bottom:14px;">
         <div style="flex:1;background:{theme['card']};border-radius:14px;padding:12px;text-align:center;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
           <div style="font-size:10px;font-weight:700;color:{theme['accent']};text-transform:uppercase;">Type</div>
-          <div style="font-size:16px;font-weight:800;">{card.type}</div>
+          <div style="font-size:16px;font-weight:800;">{card_type}</div>
         </div>
         <div style="flex:1;background:{theme['card']};border-radius:14px;padding:12px;text-align:center;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
           <div style="font-size:10px;font-weight:700;color:{theme['accent']};text-transform:uppercase;">Level</div>
@@ -172,13 +180,13 @@ def render_card_html(card: CardData, style: str = "Starter", share_url: str = ""
         </div>
         <div style="background:{theme['card']};border-radius:12px;padding:10px;">
           <div style="font-size:9px;font-weight:700;color:{theme['accent']};text-transform:uppercase;">Passive</div>
-          <div style="font-size:12px;font-weight:700;">{card.passive}</div>
+          <div style="font-size:12px;font-weight:700;">{passive}</div>
         </div>
       </div>
 
       <div style="margin-top:12px;background:{theme['card']};border-radius:12px;padding:10px;text-align:center;">
         <div style="font-size:9px;font-weight:700;color:{theme['accent']};text-transform:uppercase;">Evolution</div>
-        <div style="font-size:12px;font-weight:700;">{card.evolution}</div>
+        <div style="font-size:12px;font-weight:700;">{evolution}</div>
       </div>
 
       <div style="margin-top:14px;display:flex;justify-content:space-between;font-size:10px;color:{theme['subtext']};">

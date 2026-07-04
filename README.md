@@ -32,10 +32,18 @@ Visit the Space and try your username: https://huggingface.co/spaces/ImTamsi/hug
 
 ## Share your card
 
+Your public profile lives at a short URL — just like GitFut:
+
+```
+https://imtamsi-huggimon.hf.space/ImTamsi
+```
+
+Open that link to see your trainer card, energies, follower binder and share buttons. Legacy `/card/{username}` URLs redirect there automatically.
+
 Add this snippet to your GitHub / Hugging Face README:
 
 ```markdown
-[![HuggiMon](https://imtamsi-huggimon.hf.space/api/card/ImTamsi.png)](https://huggingface.co/spaces/ImTamsi/huggimon)
+[![HuggiMon](https://imtamsi-huggimon.hf.space/api/card/ImTamsi.png)](https://imtamsi-huggimon.hf.space/ImTamsi)
 ```
 
 Or with custom width:
@@ -76,10 +84,11 @@ Each card also carries an **energy**: the energy type is derived from your card 
 
 ## API endpoints
 
+- `GET /{username}` — public trainer profile page (card + binder + share)
 - `GET /api/card/{username}` — JSON card metadata (including the `energy` field)
 - `GET /api/card/{username}.png` — PNG card image
 - `GET /api/binder/{username}` — JSON binder page of follower mini-cards (optional `?page=` parameter)
-- `/card/{username}` — pre-filled card page
+- `/card/{username}` — redirects to `/{username}`
 
 ## Local development
 

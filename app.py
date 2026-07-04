@@ -7,8 +7,8 @@ from io import BytesIO
 from pathlib import Path
 
 import gradio as gr
-from fastapi import Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi import HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -18,6 +18,7 @@ from src.binder_html import render_binder_html
 from src.card_html import STYLE_THEMES, render_card_html
 from src.card_renderer import render_png
 from src.hf_fetcher import fetch_hf_profile
+from src.profile_page import is_profile_username, render_profile_page
 from src.scoring import build_card
 
 # ---------------------------------------------------------------------------
@@ -28,12 +29,22 @@ SPACE_OWNER = os.environ.get("SPACE_OWNER", "ImTamsi")
 SPACE_NAME = os.environ.get("SPACE_NAME", "huggimon")
 
 
-def _share_url(username: str, request: Request | None = None) -> str:
+def _base_url(request: Request | None) -> str:
     if request is not None:
         host = request.headers.get("host", f"{SPACE_OWNER}-{SPACE_NAME}.hf.space")
-        scheme = request.url.scheme
-        return f"{scheme}://{host}/api/card/{username}.png"
-    return f"https://{SPACE_OWNER}-{SPACE_NAME}.hf.space/api/card/{username}.png"
+        return f"{request.url.scheme}://{host}"
+    return f"https://{SPACE_OWNER}-{SPACE_NAME}.hf.space"
+
+
+def _profile_url(username: str, request: Request | None = None, page: int | None = None) -> str:
+    url = f"{_base_url(request)}/{username}"
+    if page and page > 1:
+        url = f"{url}?page={page}"
+    return url
+
+
+def _share_url(username: str, request: Request | None = None) -> str:
+    return f"{_base_url(request)}/api/card/{username}.png"
 
 
 def _generate_card(username: str, style: str) -> tuple:
@@ -271,32 +282,43 @@ def api_binder_json(username: str, page: int = 1):
     }
 
 
+@app.get("/{username}")
+def profile_page(username: str, request: Request, page: int = 1, style: str = "Starter"):
+    """Public trainer profile — canonical URL like gitfut.com/{username}."""
+    if not is_profile_username(username):
+        raise HTTPException(status_code=404)
+
+    username = username.strip().lstrip("@")
+    style = style if style in STYLE_THEMES else "Starter"
+
+    try:
+        profile = fetch_hf_profile(username)
+        binder = fetch_binder_page(username, page)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+    card = build_card(profile)
+    base = _base_url(request)
+    profile_url = _profile_url(username, request, page=binder.page)
+    card_png_url = _share_url(username, request)
+
+    html_doc = render_profile_page(
+        card,
+        binder,
+        profile_url=profile_url,
+        card_png_url=card_png_url,
+        app_url=base,
+        style=style,
+    )
+    return HTMLResponse(html_doc)
+
+
 @app.get("/card/{username}")
-def card_page(username: str, request: Request):
-    share = _share_url(username, request=request)
-    app_url = f"{request.url.scheme}://{request.headers.get('host', f'{SPACE_OWNER}-{SPACE_NAME}.hf.space')}"
-    return HTMLResponse(f"""<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta property="og:title" content="HuggiMon — {username} AI Trainer Card">
-  <meta property="og:description" content="Check out {username}'s AI trainer card on HuggiMon!">
-  <meta property="og:image" content="{share}">
-  <meta name="twitter:card" content="summary_large_image">
-  <title>HuggiMon — {username}</title>
-  <style>
-    body {{ font-family: system-ui, sans-serif; background: #0f172a; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
-    img {{ max-width: 90vw; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }}
-    a.button {{ display: inline-block; margin-top: 24px; padding: 12px 24px; background: #6366f1; color: #fff; border-radius: 999px; text-decoration: none; font-weight: 700; }}
-    .subtitle {{ margin-top: 12px; color: #94a3b8; }}
-  </style>
-</head>
-<body>
-  <img src="{share}" alt="{username} HuggiMon card" width="400">
-  <div class="subtitle">{username}'s AI Trainer Card</div>
-  <a class="button" href="{app_url}">Generate yours on HuggiMon</a>
-</body>
-</html>""")
+def card_page(username: str, request: Request, page: int = 1):
+    """Legacy share URL — redirects to canonical /{username}."""
+    username = username.strip().lstrip("@")
+    url = _profile_url(username, request, page=page if page > 1 else None)
+    return RedirectResponse(url=url, status_code=301)
 
 gr.mount_gradio_app(app, _demo, path="/", theme=gr.themes.Soft(), css=card_css)
 
