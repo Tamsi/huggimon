@@ -180,6 +180,10 @@ function hpCluster(opts: {
     </text>`;
 }
 
+function estimateNameWidth(text: string, fontSize: number): number {
+  return text.length * fontSize * 0.56;
+}
+
 function fitNameText(
   name: string,
   x: number,
@@ -189,10 +193,15 @@ function fitNameText(
   fill: string,
   stroke = "",
 ): string {
+  let size = fontSize;
+  const minSize = Math.max(13, Math.round(fontSize * 0.5));
+  while (size > minSize && estimateNameWidth(name, size) > maxWidth) {
+    size -= 1;
+  }
   const strokeAttr = stroke
     ? ` style="paint-order:stroke;stroke:${stroke};stroke-width:3px"`
     : "";
-  return `<text x="${x}" y="${y}" font-size="${fontSize}" font-weight="900" fill="${fill}" ${FACE_FONT_ATTR} textLength="${maxWidth}" lengthAdjust="spacingAndGlyphs"${strokeAttr}>${escapeXml(name)}</text>`;
+  return `<text x="${x}" y="${y}" font-size="${size}" font-weight="900" fill="${fill}" ${FACE_FONT_ATTR}${strokeAttr}>${escapeXml(name)}</text>`;
 }
 
 function stageBadge(x: number, y: number, stage: string): string {
