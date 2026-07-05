@@ -163,7 +163,7 @@ def render_binder_html(binder: BinderPage) -> str:
         css += _MINI_SPARKLE_CSS
 
     return f"""
-    <div class="hbinder" style="
+    <div class="hbinder" data-page="{binder.page}" data-total-pages="{binder.total_pages}" style="
       width:520px;
       border-radius:24px;
       padding:22px;

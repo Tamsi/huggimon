@@ -283,6 +283,15 @@ def api_binder_json(username: str, page: int = 1):
     }
 
 
+@app.get("/api/binder/{username}/html")
+def api_binder_html(username: str, page: int = 1):
+    try:
+        binder = fetch_binder_page(username, page)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return HTMLResponse(render_binder_html(binder))
+
+
 @app.get("/{username}")
 def profile_page(username: str, request: Request, page: int = 1, style: str = "Starter"):
     """Public trainer profile — canonical URL like gitfut.com/{username}."""

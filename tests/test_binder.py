@@ -4,6 +4,8 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
+from fastapi.responses import HTMLResponse
 
 from src.binder_fetcher import (
     BinderPage,
@@ -349,3 +351,44 @@ class TestRenderBinderHtml:
         out = render_binder_html(binder)
         assert "<img src=x" not in out
         assert "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;" in out
+
+    def test_root_div_has_page_data_attributes(self):
+        binder = BinderPage(
+            owner="prof-oak",
+            page=1,
+            total_pages=3,
+            total_followers=20,
+            cards=[_mini()],
+        )
+        out = render_binder_html(binder)
+        assert 'data-page="1"' in out
+        assert 'data-total-pages="3"' in out
+
+
+class TestApiBinderHtml:
+    def test_returns_html_response_with_binder_markup(self):
+        from app import api_binder_html
+
+        binder = BinderPage(
+            owner="tamsi",
+            page=1,
+            total_pages=3,
+            total_followers=20,
+            cards=[_mini(username="ash")],
+        )
+        with patch("app.fetch_binder_page", return_value=binder):
+            response = api_binder_html("tamsi", page=1)
+
+        assert isinstance(response, HTMLResponse)
+        body = response.body.decode() if isinstance(response.body, bytes) else response.body
+        assert "hpkm-card" in body
+        assert 'data-page="1"' in body
+
+    def test_unknown_user_raises_404(self):
+        from app import api_binder_html
+
+        with patch("app.fetch_binder_page", side_effect=ValueError("User 'x' not found")):
+            with pytest.raises(HTTPException) as exc_info:
+                api_binder_html("x")
+
+        assert exc_info.value.status_code == 404
