@@ -13,5 +13,4 @@ out/
 .DS_Store
 *.log
 
-# Generated images (local dev)
-/tmp/
+.tmp/

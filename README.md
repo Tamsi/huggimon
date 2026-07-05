@@ -2,7 +2,18 @@
 
 Generate your **AI Trainer Card** from your Hugging Face profile. Turn your Hub activity into a collectible, shareable card inspired by Pokémon TCG culture.
 
-Built with **Next.js** and deployed on [Vercel](https://vercel.com). Holo effects use the full [pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css) stack with a React port of `Card.svelte` (`@react-spring/web`).
+Built with **Next.js** and deployed on [Vercel](https://vercel.com).
+
+![Holo card animation](docs/card-holo.gif)
+
+## Credits
+
+HuggiMon builds on two open-source projects:
+
+- **[pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css)** — Pokémon TCG holo effects (3D tilt, glare, rarity shaders). The full stylesheet stack is vendored under `web/public/pokemon-cards-css/`, with a React port of `Card.svelte` via `@react-spring/web`.
+- **[gitfut](https://github.com/younesfdj/gitfut)** — The idea of turning a developer profile into a shareable collectible card (`/{username}` URLs, README embed snippets, stat-to-card mapping). HuggiMon applies that pattern to Hugging Face activity instead of GitHub.
+
+Thank you to [simeydotme](https://github.com/simeydotme) and [younesfdj](https://github.com/younesfdj) for the foundations.
 
 ## How it works
 

@@ -2,7 +2,7 @@
 
 Pokemon TCG-style trainer cards from Hugging Face profiles, deployed on [Vercel](https://vercel.com).
 
-Holo effects use the full [pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css) stylesheet stack (same as [poke-holo.simey.me](https://poke-holo.simey.me/)), with a React port of `Card.svelte` (`@react-spring/web`).
+Built on [pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css) (holo stack) and inspired by [gitfut](https://github.com/younesfdj/gitfut) (profile-as-collectible-card). See the [root README](../README.md) for credits and demo GIF.
 
 ## Develop
 
