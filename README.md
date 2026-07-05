@@ -1,4 +1,7 @@
-# HuggiMon
+<h1>
+  <img src="web/public/brand/huggimon-logo.png" alt="HuggiMon" width="48" align="top" />
+  HuggiMon
+</h1>
 
 Generate your **AI Trainer Card** from your Hugging Face profile. Turn your Hub activity into a collectible, shareable card inspired by Pokémon TCG culture.
 
