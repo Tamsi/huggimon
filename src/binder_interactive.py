@@ -70,6 +70,60 @@ def render_binder_interactive(username: str) -> str:
 .hbi-server-pager {{
   display: none;
 }}
+.hbi-ready .hpkm-card {{
+  cursor: pointer;
+  transition: transform 150ms ease;
+}}
+.hbi-ready .hpkm-card:hover {{
+  transform: translateY(-3px);
+}}
+.hbi-overlay {{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}}
+.hbi-overlay.hbi-fade-in {{
+  animation: hbi-fade-in 200ms ease forwards;
+}}
+.hbi-overlay.hbi-fade-out {{
+  animation: hbi-fade-out 200ms ease forwards;
+}}
+@keyframes hbi-fade-in {{
+  from {{ opacity: 0; }}
+  to {{ opacity: 1; }}
+}}
+@keyframes hbi-fade-out {{
+  from {{ opacity: 1; }}
+  to {{ opacity: 0; }}
+}}
+.hbi-zoomed {{
+  will-change: transform;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}}
+.hbi-close {{
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10000;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(28, 25, 23, 0.85);
+  color: #fafaf9;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}}
+.hbi-close:hover {{
+  background: rgba(68, 64, 60, 0.95);
+}}
 </style>
 <script>
 (function () {{
@@ -81,6 +135,11 @@ def render_binder_interactive(username: str) -> str:
 
   var username = {username_js};
   var flipping = false;
+  var overlayOpen = false;
+
+  function prefersReducedMotion() {{
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }}
 
   function getBinder() {{
     return wrap.querySelector(".hbinder");
@@ -232,6 +291,203 @@ def render_binder_interactive(username: str) -> str:
       }});
   }}
 
+  function openCardOverlay(sourceCard) {{
+    if (overlayOpen) {{
+      return;
+    }}
+    overlayOpen = true;
+
+    var sourceRect = sourceCard.getBoundingClientRect();
+    var reducedMotion = prefersReducedMotion();
+    var targetWidth = Math.min(window.innerWidth * 0.6, 340);
+    var scale = targetWidth / sourceRect.width;
+    var targetHeight = sourceRect.height * scale;
+    var centerX = window.innerWidth / 2;
+    var centerY = window.innerHeight / 2;
+    var targetLeft = centerX - targetWidth / 2;
+    var targetTop = centerY - targetHeight / 2;
+
+    var overlay = document.createElement("div");
+    overlay.className = "hbi-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+
+    var closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "hbi-close";
+    closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.textContent = "\u00d7";
+
+    var clone = sourceCard.cloneNode(true);
+    clone.classList.add("hbi-zoomed");
+    clone.style.position = "fixed";
+    clone.style.left = sourceRect.left + "px";
+    clone.style.top = sourceRect.top + "px";
+    clone.style.width = sourceRect.width + "px";
+    clone.style.height = sourceRect.height + "px";
+    clone.style.margin = "0";
+    clone.style.transformOrigin = "center center";
+    clone.style.zIndex = "10001";
+    clone.style.pointerEvents = "none";
+
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+    document.body.appendChild(clone);
+
+    var prevOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+
+    var closing = false;
+    var tiltRaf = 0;
+    var tiltX = 0;
+    var tiltY = 0;
+    var finalDx = targetLeft - sourceRect.left;
+    var finalDy = targetTop - sourceRect.top;
+
+    function applyTransform(tx, ty, sc, rx, ry) {{
+      clone.style.transform =
+        "translate(" +
+        tx +
+        "px, " +
+        ty +
+        "px) scale(" +
+        sc +
+        ") rotateX(" +
+        rx +
+        "deg) rotateY(" +
+        ry +
+        "deg)";
+    }}
+
+    function onPointerMove(ev) {{
+      if (closing || reducedMotion) {{
+        return;
+      }}
+      var rect = overlay.getBoundingClientRect();
+      var nx = (ev.clientX - rect.left) / rect.width - 0.5;
+      var ny = (ev.clientY - rect.top) / rect.height - 0.5;
+      tiltX = ny * -14;
+      tiltY = nx * 14;
+      if (!tiltRaf) {{
+        tiltRaf = requestAnimationFrame(function () {{
+          tiltRaf = 0;
+          if (!closing) {{
+            applyTransform(finalDx, finalDy, scale, tiltX, tiltY);
+          }}
+        }});
+      }}
+    }}
+
+    function animateToTarget() {{
+      return new Promise(function (resolve) {{
+        if (reducedMotion) {{
+          overlay.classList.add("hbi-fade-in");
+          clone.style.opacity = "1";
+          resolve();
+          return;
+        }}
+
+        var dx = targetLeft - sourceRect.left;
+        var dy = targetTop - sourceRect.top;
+        clone.style.transition =
+          "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease";
+        requestAnimationFrame(function () {{
+          applyTransform(dx, dy, scale, 0, 0);
+        }});
+
+        waitTransition(clone, 400).then(resolve);
+      }});
+    }}
+
+    function closeOverlay() {{
+      if (closing) {{
+        return;
+      }}
+      closing = true;
+      overlay.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("keydown", onKeyDown);
+
+      var sourceGone = !document.body.contains(sourceCard);
+      var returnRect = sourceGone
+        ? null
+        : sourceCard.getBoundingClientRect();
+
+      function finishClose() {{
+        if (tiltRaf) {{
+          cancelAnimationFrame(tiltRaf);
+        }}
+        overlay.remove();
+        clone.remove();
+        document.documentElement.style.overflow = prevOverflow;
+        overlayOpen = false;
+      }}
+
+      if (reducedMotion || sourceGone) {{
+        overlay.classList.remove("hbi-fade-in");
+        overlay.classList.add("hbi-fade-out");
+        clone.style.transition = "opacity 200ms ease";
+        clone.style.opacity = "0";
+        setTimeout(finishClose, 220);
+        return;
+      }}
+
+      var dx = returnRect.left - sourceRect.left;
+      var dy = returnRect.top - sourceRect.top;
+      var returnScale = returnRect.width / sourceRect.width;
+      clone.style.transition =
+        "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease";
+      applyTransform(dx, dy, returnScale, 0, 0);
+
+      waitTransition(clone, 400).then(function () {{
+        overlay.style.transition = "opacity 200ms ease";
+        overlay.style.opacity = "0";
+        setTimeout(finishClose, 220);
+      }});
+    }}
+
+    function onBackdropClick(ev) {{
+      if (ev.target === overlay) {{
+        closeOverlay();
+      }}
+    }}
+
+    function onKeyDown(ev) {{
+      if (ev.key === "Escape") {{
+        closeOverlay();
+      }}
+    }}
+
+    overlay.addEventListener("click", onBackdropClick);
+    closeBtn.addEventListener("click", closeOverlay);
+    overlay.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("keydown", onKeyDown);
+
+    if (reducedMotion) {{
+      overlay.classList.add("hbi-fade-in");
+      clone.style.opacity = "0";
+      clone.style.transition = "opacity 200ms ease";
+      requestAnimationFrame(function () {{
+        clone.style.opacity = "1";
+      }});
+    }} else {{
+      applyTransform(0, 0, 1, 0, 0);
+    }}
+
+    animateToTarget();
+  }}
+
+  function initCardPullOut() {{
+    wrap.classList.add("hbi-ready");
+    wrap.addEventListener("click", function (ev) {{
+      var card = ev.target.closest(".hpkm-card");
+      if (!card || !wrap.contains(card)) {{
+        return;
+      }}
+      ev.preventDefault();
+      openCardOverlay(card);
+    }});
+  }}
+
   function init() {{
     var binder = getBinder();
     if (!binder) {{
@@ -239,6 +495,7 @@ def render_binder_interactive(username: str) -> str:
     }}
 
     hideServerPager();
+    initCardPullOut();
     var pager = buildPager();
     var state = readPageState(binder);
     var currentPage = state.page;

@@ -29,6 +29,18 @@ class TestRenderBinderInteractive:
         assert "replaceState" in out
         assert "/api/binder/" in out
 
+    def test_contains_card_pull_out_markers(self):
+        out = render_binder_interactive("tamsi")
+        assert "hbi-ready" in out
+        assert "hbi-overlay" in out
+        assert "hbi-zoomed" in out
+        assert 'role="dialog"' in out or 'role", "dialog"' in out
+        assert "aria-modal" in out
+        assert 'aria-label="Close"' in out or 'aria-label", "Close"' in out
+        assert "closest" in out
+        assert "Escape" in out
+        assert "overflow" in out
+
     def test_username_json_encoded_safely(self):
         evil = 'evil"})</script>'
         out = render_binder_interactive(evil)
