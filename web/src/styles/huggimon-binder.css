@@ -16,6 +16,8 @@
   width: 100%;
   padding: 12px 0 8px;
   position: relative;
+  perspective: 2400px;
+  perspective-origin: 50% 42%;
 }
 
 .tcg-binder {
@@ -23,40 +25,29 @@
   width: min(500px, 96vw);
   height: min(720px, 82vh);
   transform-style: preserve-3d;
-  transition:
-    transform 0.9s cubic-bezier(0.33, 1, 0.68, 1),
-    width 0.65s cubic-bezier(0.33, 1, 0.68, 1);
-  perspective: 2800px;
-  perspective-origin: 42% 48%;
+  transition: width 0.85s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .tcg-binder--open {
   width: min(980px, 98vw);
 }
 
-.tcg-binder--open:not(.tcg-binder--turning) {
-  perspective: none;
+.tcg-binder--visible .tcg-binder__body {
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+  pointer-events: auto;
+  transform: translateZ(0);
+}
+
+/* Flat at rest (accurate popover measurements), subtle tilt while turning */
+.tcg-binder--open .tcg-binder__spread {
   transform: none;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.tcg-binder--open:not(.tcg-binder--turning) .tcg-binder__body,
-.tcg-binder--open:not(.tcg-binder--turning) .tcg-binder__spread,
-.tcg-binder--open:not(.tcg-binder--turning) .tcg-binder__sheet--active {
-  transform-style: flat;
-}
-
-.tcg-binder--open:not(.tcg-binder--turning) .tcg-binder__sheet--active:not(.tcg-binder__sheet--turning) {
-  transform: none !important;
-}
-
-.tcg-binder--open.tcg-binder--turning {
-  perspective: 2400px;
-  perspective-origin: 12% 48%;
-  transform: translateZ(0) rotateX(1.2deg);
-}
-
-.tcg-binder--open.tcg-binder--turning-prev {
-  perspective-origin: 88% 48%;
+.tcg-binder--turning .tcg-binder__spread {
+  transform: rotateX(2.5deg);
 }
 
 .tcg-binder__cover {
@@ -68,12 +59,31 @@
   cursor: pointer;
   transform-style: preserve-3d;
   transform-origin: left center;
+  transform: rotateY(0deg);
   transition:
-    transform 1.05s cubic-bezier(0.45, 0.05, 0.25, 1),
-    filter 1.05s ease,
-    box-shadow 1.05s ease;
+    transform 1.08s cubic-bezier(0.33, 0.9, 0.42, 1),
+    filter 1.08s ease,
+    box-shadow 1.08s ease,
+    visibility 0s linear 0s;
   background: none;
   will-change: transform;
+}
+
+.tcg-binder--opening .tcg-binder__cover,
+.tcg-binder--open .tcg-binder__cover {
+  transform: rotateY(-168deg);
+  filter: brightness(0.92);
+  box-shadow: -18px 6px 40px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.tcg-binder--open .tcg-binder__cover {
+  visibility: hidden;
+  transition:
+    transform 1.08s cubic-bezier(0.33, 0.9, 0.42, 1),
+    filter 1.08s ease,
+    box-shadow 1.08s ease,
+    visibility 0s linear 1.08s;
 }
 
 .tcg-binder__cover::after {
@@ -92,8 +102,9 @@
   pointer-events: none;
 }
 
-.tcg-binder--open .tcg-binder__cover {
-  display: none;
+.tcg-binder--opening .tcg-binder__cover::after,
+.tcg-binder--open .tcg-binder__cover::after {
+  opacity: 1;
 }
 
 .tcg-binder__cover-face,
@@ -210,7 +221,7 @@
   inset: 0;
   z-index: 1;
   display: flex;
-  border-radius: 6px 18px 18px 6px;
+  border-radius: 18px;
   transform-style: preserve-3d;
   transform: translateZ(-2px);
   box-shadow: var(--hk-shadow-book);
@@ -218,278 +229,210 @@
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity 0.55s ease 0.38s,
-    visibility 0s linear 1.1s;
+    opacity 0.5s ease 0.42s,
+    visibility 0s linear 1.1s,
+    transform 0.5s ease 0.42s;
 }
 
-.tcg-binder--open .tcg-binder__body {
-  opacity: 1;
+.tcg-binder--opening .tcg-binder__body {
+  opacity: 0.35;
   visibility: visible;
-  z-index: 2;
-  pointer-events: auto;
-  transform: translateZ(0);
-  transition:
-    opacity 0.55s ease 0.38s,
-    visibility 0s linear 0s;
-}
-
-.tcg-binder__spine {
-  width: 36px;
-  flex-shrink: 0;
-  background: linear-gradient(90deg, #5c0a1a, #881337 50%, #5c0a1a);
-  border-radius: 6px 0 0 6px;
-  box-shadow: inset -4px 0 10px rgba(0, 0, 0, 0.4);
-  position: relative;
-}
-
-.tcg-binder__spine-text {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: 0.35em;
-  color: rgba(255, 255, 255, 0.7);
-  white-space: nowrap;
-}
-
-.tcg-binder__rings {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
   pointer-events: none;
 }
 
-.tcg-binder__ring {
-  display: block;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--hk-ring);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+.tcg-binder--visible .tcg-binder__body {
+  transition:
+    opacity 0.55s ease 0.42s,
+    visibility 0s linear 0s,
+    transform 0.55s ease 0.42s;
 }
 
+/* ── Open spread: left pane · central spine · right pane ── */
 .tcg-binder__spread {
   flex: 1;
   position: relative;
   display: flex;
   min-width: 0;
   transform-style: preserve-3d;
-  border-radius: 0 16px 16px 0;
-  background: linear-gradient(90deg, #101014 0%, #1a1a20 100%);
+  border-radius: 16px;
+  background: linear-gradient(90deg, #101014 0%, #16161c 50%, #101014 100%);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
-.tcg-binder__left-pane {
+.tcg-binder__pane {
   flex: 1;
   min-width: 0;
-  padding: 12px 6px 12px 12px;
   position: relative;
+  transform-style: preserve-3d;
 }
 
-.tcg-binder__left-pane-inner {
-  position: relative;
-  height: 100%;
-  border-radius: 12px 4px 4px 12px;
-  overflow: hidden;
-  background: linear-gradient(168deg, #2a2834 0%, #18181e 100%);
-  box-shadow:
-    inset -8px 0 16px -10px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-}
-
-.tcg-binder__left-pane--turned .tcg-binder__left-pane-inner {
-  background: linear-gradient(168deg, #24242c 0%, #141418 100%);
-}
-
-.tcg-binder__left-pane-inner::after {
-  content: "";
-  position: absolute;
-  right: 8px;
-  top: 18%;
-  bottom: 18%;
-  width: 10px;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 16%, rgba(0, 0, 0, 0.55) 0 4px, transparent 4px),
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.55) 0 4px, transparent 4px),
-    radial-gradient(circle at 50% 84%, rgba(0, 0, 0, 0.55) 0 4px, transparent 4px);
-  opacity: 0.75;
-  z-index: 1;
-}
-
-.tcg-page__rear-fill--spread {
-  height: 100%;
-  opacity: 0.92;
-  background:
-    linear-gradient(
-      125deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      transparent 40%,
-      transparent 65%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 18px,
-      rgba(255, 255, 255, 0.025) 18px,
-      rgba(255, 255, 255, 0.025) 19px
-    );
-}
-
+/* Central spine (ring binder mechanism) */
 .tcg-binder__gutter {
   position: relative;
   z-index: 6;
   flex-shrink: 0;
-  width: var(--tcg-gutter, 28px);
-  background: linear-gradient(90deg, #0c0c10, #1e1e26 50%, #0c0c10);
+  width: var(--tcg-gutter, 44px);
+  background: linear-gradient(90deg, #4a0815, #881337 50%, #4a0815);
   box-shadow:
-    inset 4px 0 10px rgba(0, 0, 0, 0.45),
-    inset -4px 0 10px rgba(0, 0, 0, 0.45);
+    inset 6px 0 12px rgba(0, 0, 0, 0.5),
+    inset -6px 0 12px rgba(0, 0, 0, 0.5);
 }
 
-.tcg-binder__gutter .tcg-binder__rings {
+.tcg-binder__spine-text {
   position: absolute;
   left: 50%;
-  top: 50%;
-  z-index: 20;
-  transform: translate(-50%, -50%);
-}
-
-.tcg-binder__right-pane {
-  flex: 1;
-  min-width: 0;
-  position: relative;
-}
-
-/* Sheet depth — decorative, must not block pocket clicks */
-.tcg-binder__right-pane .tcg-binder__sheet--under,
-.tcg-binder__right-pane .tcg-binder__sheet--under-2 {
-  position: absolute;
-  inset: 8px 8px 8px 4px;
-  border-radius: 0 12px 12px 0;
-  background: linear-gradient(165deg, #2e2e36 0%, #1a1a20 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    1px 2px 6px rgba(0, 0, 0, 0.35);
+  top: 8%;
+  transform: translateX(-50%) rotate(-90deg) translateX(-100%);
+  transform-origin: left center;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
   pointer-events: none;
 }
 
-.tcg-binder__sheet--under {
-  transform: translateZ(-3px) translateY(2px);
+.tcg-binder__ring {
+  position: absolute;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--hk-ring);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  z-index: 20;
+  pointer-events: none;
 }
 
-.tcg-binder__sheet--under-2 {
-  transform: translateZ(-6px) translateY(4px);
+.tcg-binder__ring:nth-of-type(1) { top: 20%; }
+.tcg-binder__ring:nth-of-type(2) { top: 50%; }
+.tcg-binder__ring:nth-of-type(3) { top: 80%; }
+
+/* Stacked page edges hinting at remaining sheets */
+.tcg-binder__stack-edge {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  width: 7px;
+  pointer-events: none;
+  z-index: 3;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.14) 0 1px,
+    rgba(20, 20, 26, 0.9) 1px 3px
+  );
 }
 
-/* Active flipping page — leaf hinge (gist / StPageFlip style) */
-.tcg-binder__sheet--active {
+.tcg-binder__stack-edge--right {
+  right: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.tcg-binder__stack-edge--left {
+  left: 0;
+  border-radius: 6px 0 0 6px;
+}
+
+/* ── Turning sheet: one physical page, front + back faces ── */
+.tcg-binder__sheet {
   position: absolute;
   top: 0;
   bottom: 0;
-  z-index: 10;
+  left: calc((100% - var(--tcg-gutter, 44px)) / 2 + var(--tcg-gutter, 44px));
+  width: calc((100% - var(--tcg-gutter, 44px)) / 2);
+  z-index: 24;
   transform-style: preserve-3d;
-  transform: translateZ(1px) rotateY(0deg);
-  transition: transform 1s cubic-bezier(0.42, 0, 0.22, 1);
+  transform-origin: left center;
   will-change: transform;
   pointer-events: none;
 }
 
-.tcg-binder__sheet--hinge-left {
-  left: calc((100% - var(--tcg-gutter, 28px)) / 2 + var(--tcg-gutter, 28px));
-  right: 0;
-  transform-origin: left center;
-}
-
-.tcg-binder__sheet--hinge-right {
-  left: 0;
-  width: calc((100% - var(--tcg-gutter, 28px)) / 2);
-  transform-origin: right center;
-}
-
-.tcg-binder__sheet--active > .tcg-page:not(.tcg-page--rear) {
-  pointer-events: none;
-}
-
-.tcg-binder__sheet--flipped {
-  transform: translateZ(2px) rotateY(-180deg);
-}
-
-.tcg-binder__sheet--turning {
-  z-index: 24;
-}
-
-.tcg-binder__sheet--turning .tcg-page--front {
-  box-shadow:
-    inset 10px 0 12px -10px rgba(0, 0, 0, 0.35),
-    -20px 10px 36px rgba(0, 0, 0, 0.45);
-}
-
-.tcg-binder__sheet--turning.tcg-binder__sheet--hinge-right .tcg-page--front {
-  box-shadow:
-    inset -10px 0 12px -10px rgba(0, 0, 0, 0.35),
-    20px 10px 36px rgba(0, 0, 0, 0.45);
-}
-
-.tcg-binder__sheet--turning .tcg-page--rear {
-  box-shadow:
-    inset -10px 0 12px -10px rgba(0, 0, 0, 0.14),
-    -8px 6px 20px rgba(0, 0, 0, 0.18);
-}
-
-.tcg-binder__sheet--instant {
-  transition: none !important;
-}
-
-.tcg-binder__sheet--loading .tcg-page__grid {
-  opacity: 0.55;
-  transition: opacity 0.2s ease;
-}
-
-.tcg-page {
+.tcg-binder__sheet-face {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transform: translateZ(0.1px);
+  overflow: hidden;
+}
+
+.tcg-binder__sheet-face--back {
+  transform: rotateY(180deg) translateZ(0.1px);
+}
+
+.tcg-binder__sheet-face--front .tcg-page {
+  box-shadow:
+    inset 14px 0 18px -12px rgba(0, 0, 0, 0.42),
+    -18px 14px 42px rgba(0, 0, 0, 0.48);
+}
+
+.tcg-binder__sheet-face--back .tcg-page {
+  box-shadow:
+    inset -14px 0 18px -12px rgba(0, 0, 0, 0.42),
+    18px 14px 42px rgba(0, 0, 0, 0.48);
+}
+
+/* ── Laminated plastic page (both panes and sheet faces) ── */
+.tcg-page {
+  position: absolute;
+  inset: 0;
   background:
     radial-gradient(ellipse 90% 55% at 18% 8%, rgba(255, 255, 255, 0.07), transparent 52%),
     linear-gradient(168deg, #2a2a32 0%, #1c1c22 48%, #141418 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 8px 0 14px -8px rgba(0, 0, 0, 0.45);
-  padding: 14px 14px 14px 22px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   pointer-events: none;
   overflow: hidden;
 }
 
-.tcg-page--front {
-  border-radius: 0 16px 16px 0;
+.tcg-page--right {
+  border-radius: 0 14px 14px 0;
+  padding: 14px 14px 14px 24px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 10px 0 16px -8px rgba(0, 0, 0, 0.5);
 }
 
-.tcg-page--front::before {
+.tcg-page--left {
+  border-radius: 14px 0 0 14px;
+  padding: 14px 24px 14px 14px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset -10px 0 16px -8px rgba(0, 0, 0, 0.5);
+}
+
+/* Ring punch holes, aligned with the spine rings */
+.tcg-page--right::before,
+.tcg-page--left::before {
   content: "";
   position: absolute;
-  left: 10px;
-  top: 18%;
-  bottom: 18%;
-  width: 10px;
+  top: 0;
+  bottom: 0;
+  width: 14px;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 16%, rgba(0, 0, 0, 0.55) 0 4px, transparent 4px),
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.55) 0 4px, transparent 4px),
-    radial-gradient(circle at 50% 84%, rgba(0, 0, 0, 0.55) 0 4px, transparent 4px);
-  opacity: 0.85;
+    radial-gradient(circle at 50% 20%, rgba(0, 0, 0, 0.6) 0 4.5px, transparent 5px),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.6) 0 4.5px, transparent 5px),
+    radial-gradient(circle at 50% 80%, rgba(0, 0, 0, 0.6) 0 4.5px, transparent 5px);
+  opacity: 0.9;
   z-index: 1;
 }
 
-.tcg-page--front::after {
+.tcg-page--right::before {
+  left: 6px;
+}
+
+.tcg-page--left::before {
+  right: 6px;
+}
+
+/* Full-sheet plastic gloss */
+.tcg-page--right::after,
+.tcg-page--left::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -497,47 +440,48 @@
   pointer-events: none;
   background: linear-gradient(
     128deg,
-    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.18) 0%,
     rgba(255, 255, 255, 0.05) 16%,
     transparent 38%,
     transparent 62%,
     rgba(255, 255, 255, 0.03) 82%,
-    rgba(255, 255, 255, 0.1) 100%
+    rgba(255, 255, 255, 0.09) 100%
   );
   z-index: 4;
 }
 
-.tcg-page--rear {
-  transform: rotateY(180deg);
-  background: linear-gradient(168deg, #24242c 0%, #16161c 100%);
-  box-shadow: inset -8px 0 14px -8px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  z-index: 0;
+.tcg-page--left::after {
+  background: linear-gradient(
+    232deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.05) 16%,
+    transparent 38%,
+    transparent 62%,
+    rgba(255, 255, 255, 0.03) 82%,
+    rgba(255, 255, 255, 0.09) 100%
+  );
 }
 
-.tcg-binder__sheet--active:not(.tcg-binder__sheet--flipped) .tcg-page--rear {
+/* Inside cover (spread 0 left side / last spread right side) */
+.tcg-binder__inside-cover {
+  align-items: center;
+  justify-content: center;
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"),
+    linear-gradient(155deg, #221019 0%, #170a10 60%, #10070b 100%);
+}
+
+.tcg-binder__inside-cover::before {
   display: none;
 }
 
-.tcg-page__rear-fill {
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
-  background:
-    linear-gradient(
-      125deg,
-      rgba(255, 255, 255, 0.06) 0%,
-      transparent 35%,
-      transparent 70%,
-      rgba(255, 255, 255, 0.04) 100%
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 12px,
-      rgba(255, 255, 255, 0.03) 12px,
-      rgba(255, 255, 255, 0.03) 13px
-    );
+.tcg-binder__inside-cover-mark {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.12);
+  transform: rotate(-90deg);
 }
 
 .tcg-page__head {
@@ -782,10 +726,6 @@
   .tcg-binder,
   .tcg-binder__cover {
     transition-duration: 0.3s;
-  }
-
-  .tcg-binder__sheet--active {
-    transition: none;
   }
 
   .tcg-binder__cover-cta {

@@ -733,15 +733,8 @@
   text-align: center;
 }
 
-.tcg-binder__sheet--loading {
-  opacity: 0.7;
+.tcg-binder--turning .tcg-page__grid {
   pointer-events: none;
-}
-
-.tcg-binder__sheet--loading:has(.card.hpk-pocket.active),
-.tcg-binder__sheet--loading:has(.tcg-pocket__trainer-anchor--active) {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
