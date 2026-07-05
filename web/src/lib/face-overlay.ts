@@ -1,6 +1,6 @@
 import type { CardVariant } from "./card-variant";
 import { cardBorderTier } from "./card-variant";
-import { FACE_FONT_ATTR, svgEmbeddedFontDefs } from "./face-font";
+import { FACE_FONT_ATTR } from "./svg-to-png";
 import { pokemonTypeInfo, typeCardTheme, type PokemonType, type TypeCardTheme, pokemonTypeLabel } from "./pokemon-types";
 import type { CardData } from "./scoring";
 import {
@@ -345,7 +345,6 @@ export function buildTrainerOverlaySvg(card: CardData, variant: CardVariant): st
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${FACE_W}" height="${FACE_H}" viewBox="0 0 ${FACE_W} ${FACE_H}">
   <defs>
-    ${svgEmbeddedFontDefs()}
     <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${theme.bodyLight}"/>
       <stop offset="55%" stop-color="${theme.body}"/>
@@ -448,7 +447,6 @@ export function buildFullBleedOverlaySvg(
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${FACE_W}" height="${FACE_H}" viewBox="0 0 ${FACE_W} ${FACE_H}">
   <defs>
-    ${svgEmbeddedFontDefs()}
     ${topGradient}
     ${bottomGradient}
     ${tcgFrame.defs}

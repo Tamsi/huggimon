@@ -3,6 +3,7 @@ import type { CardVariant } from "./card-variant";
 import { FACE_H, FACE_W, overlaySvgForVariant, TRAINER_ART } from "./face-overlay";
 import type { CardData } from "./scoring";
 import { typeColorRgb } from "./pokemon-types";
+import { rasterizeSvgToPng } from "./svg-to-png";
 
 async function fetchAvatarBuffer(url: string | null): Promise<Buffer | null> {
   if (!url) return null;
@@ -63,7 +64,7 @@ async function trainerArtLayer(avatar: Buffer | null, card: CardData): Promise<B
 export async function composeFacePng(card: CardData, variant: CardVariant): Promise<Buffer> {
   const isFullBleed = variant.faceTemplate !== "trainer";
   const overlaySvg = overlaySvgForVariant(card, variant);
-  const overlayP = sharp(Buffer.from(overlaySvg)).png().toBuffer();
+  const overlayP = Promise.resolve(rasterizeSvgToPng(overlaySvg));
   const avatarP = fetchAvatarBuffer(card.avatarUrl);
 
   if (isFullBleed) {
