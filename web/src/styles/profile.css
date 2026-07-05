@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 .profile {
-  max-width: 1040px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 32px 20px 64px;
 }
@@ -94,6 +94,11 @@
   color: var(--hk-blue-deep);
 }
 
+/* Neutral-type holo glow (Normal, Flying) */
+.card.colorless {
+  --card-glow: hsl(220, 10%, 72%);
+}
+
 /* ── Actions (share + github) ── */
 .profile-actions {
   display: flex;
@@ -181,6 +186,32 @@
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--hk-yellow);
+}
+
+.profile-binder__skeleton {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 40px;
+}
+
+.profile-binder__skeleton-sheet {
+  width: min(92vw, 980px);
+  aspect-ratio: 1 / 1.12;
+  border-radius: 18px;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.04) 8%,
+    rgba(255, 255, 255, 0.1) 18%,
+    rgba(255, 255, 255, 0.04) 33%
+  );
+  background-size: 200% 100%;
+  animation: profile-binder-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes profile-binder-shimmer {
+  to {
+    background-position: -200% 0;
+  }
 }
 
 /* ── Footer ── */

@@ -242,6 +242,27 @@ export function wireNumber(variant: CardVariant, level: number): string {
   return String(level);
 }
 
+/** TCG outer frame tier — yellow basics, black V, grey full-art, none for VMAX */
+export type CardBorderTier = "basic-yellow" | "v-black" | "full-art-grey" | "none" | "secret-gold";
+
+export function cardBorderTier(variant: CardVariant): CardBorderTier {
+  switch (variant.faceTemplate) {
+    case "trainer":
+      return "basic-yellow";
+    case "pokemon-v":
+      return "v-black";
+    case "vmax":
+    case "rainbow":
+      return "none";
+    case "secret":
+      return "secret-gold";
+    case "full-art":
+    case "vstar":
+    default:
+      return "full-art-grey";
+  }
+}
+
 /** CSS root class for holo clipping behaviour */
 export function faceLayoutClass(variant: CardVariant): string {
   return variant.faceTemplate === "trainer" ? "hpk-trainer-face" : "hpk-full-bleed";

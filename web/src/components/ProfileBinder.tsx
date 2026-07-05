@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { HuggimonBinder } from "@/components/HuggimonBinder";
 import { ProfileHero } from "@/components/ProfileHero";
-import type { BinderPageData } from "@/lib/binder-fetcher";
+import { fetchBinderPage } from "@/lib/binder-fetcher";
 import type { CardData } from "@/lib/scoring";
 import type { CardVariant } from "@/lib/card-variant";
 
@@ -9,31 +10,41 @@ type Props = {
   card: CardData;
   variant: CardVariant;
   faceUrl: string;
+  faceInline?: string;
   profileUrl: string;
-  binderPage: BinderPageData;
 };
 
-export function ProfileBinder({
-  card,
-  variant,
-  faceUrl,
-  profileUrl,
-  binderPage,
-}: Props) {
+async function BinderSection({ card }: { card: CardData }) {
+  const binderPage = await fetchBinderPage(card.username, 0);
+  return <HuggimonBinder card={card} initialPage={binderPage} />;
+}
+
+function BinderFallback() {
+  return (
+    <div className="profile-binder__skeleton" aria-hidden>
+      <div className="profile-binder__skeleton-sheet" />
+    </div>
+  );
+}
+
+export function ProfileBinder({ card, variant, faceUrl, faceInline, profileUrl }: Props) {
   return (
     <div className="profile">
       <ProfileHero
         card={card}
         variant={variant}
         faceUrl={faceUrl}
+        faceInline={faceInline}
         profileUrl={profileUrl}
       />
 
       <section className="profile-binder" aria-labelledby="binder-heading">
         <h2 id="binder-heading" className="profile-binder__title">
-          Mon classeur
+          My binder
         </h2>
-        <HuggimonBinder card={card} initialPage={binderPage} />
+        <Suspense fallback={<BinderFallback />}>
+          <BinderSection card={card} />
+        </Suspense>
       </section>
 
       <footer className="profile-foot">

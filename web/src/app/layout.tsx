@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
+import { SiteHeader } from "@/components/SiteHeader";
 import { POKEMON_CARD_STYLES } from "@/lib/pokemon-card-styles";
 import "./globals.css";
 
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
   title: "HuggiMon — Hugging Face Trainer Cards",
   description:
     "Pokemon TCG-style trainer cards from Hugging Face profiles, with holographic effects by pokemon-cards-css.",
+  icons: {
+    icon: [{ url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" }],
+    apple: "/brand/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -28,6 +33,7 @@ export default function RootLayout({
         ))}
       </head>
       <body className="hk-body antialiased">
+        <SiteHeader />
         {children}
       </body>
     </html>

@@ -1,17 +1,42 @@
 import type { HfProfileData } from "./hf-fetcher";
-import { energyCountFromLikes, energyForType } from "./energy";
+import { energyCountFromLikes, typeForUsername } from "./energy";
+import {
+  pokemonTypeFromUsername,
+  pokemonTypeInfo,
+  type PokemonType,
+} from "./pokemon-types";
+
+export const CARD_SET_SIZE = 151;
+
+const RARITY_SYMBOLS: Record<string, string> = {
+  Common: "●",
+  Rare: "◆",
+  Epic: "★",
+  Legendary: "★",
+};
+
+const WEAKNESS_BY_TYPE: Partial<Record<PokemonType, PokemonType>> = {
+  Fire: "Water",
+  Water: "Electric",
+  Electric: "Grass",
+  Grass: "Fire",
+  Psychic: "Steel",
+  Steel: "Fire",
+  Fairy: "Steel",
+  Normal: "Fighting",
+  Fighting: "Psychic",
+  Poison: "Psychic",
+  Ground: "Water",
+  Flying: "Electric",
+  Bug: "Fire",
+  Rock: "Water",
+  Ghost: "Dark",
+  Dragon: "Fairy",
+  Dark: "Fighting",
+  Ice: "Steel",
+};
 
 const MAX_STAT = 100;
-
-const TYPE_TAGS: Record<string, string[]> = {
-  Code: ["code", "codegen", "programming", "codet5", "codebert", "starcoder"],
-  Vision: ["vision", "image-classification", "object-detection", "diffusers", "image-to-text", "text-to-image"],
-  Audio: ["audio", "speech", "automatic-speech-recognition", "text-to-speech", "voice-activity-detection"],
-  NLP: ["nlp", "text-classification", "token-classification", "question-answering", "summarization", "translation"],
-  Multimodal: ["multimodal", "image-to-text", "text-to-image", "visual-question-answering"],
-  Agent: ["agent", "smolagents", "tool", "autonomous", "grpo"],
-  Dataset: [],
-};
 
 export type CardStats = {
   model: number;
@@ -26,7 +51,7 @@ export type CardData = {
   username: string;
   displayName: string;
   level: number;
-  type: string;
+  type: PokemonType;
   rarity: string;
   stats: CardStats;
   attacks: string[];
@@ -102,29 +127,6 @@ export function computeStats(data: HfProfileData): CardStats {
   };
 }
 
-function detectType(data: HfProfileData, stats: CardStats): string {
-  const tagCounts: Record<string, number> = Object.fromEntries(
-    Object.keys(TYPE_TAGS).map((t) => [t, 0]),
-  );
-
-  for (const repo of [...data.models, ...data.datasets, ...data.spaces]) {
-    for (const tag of repo.tags) {
-      const lower = tag.toLowerCase();
-      for (const [t, keywords] of Object.entries(TYPE_TAGS)) {
-        if (keywords.some((k) => lower.includes(k))) tagCounts[t] += 1;
-      }
-    }
-  }
-
-  if (data.datasets.length > data.models.length + data.spaces.length && stats.data >= stats.model) {
-    return "Dataset";
-  }
-
-  const best = Object.entries(tagCounts).sort((a, b) => b[1] - a[1])[0];
-  if (best && best[1] > 0) return best[0];
-  return stats.model >= stats.data ? "Code" : "NLP";
-}
-
 function rarityFromOverall(o: number): string {
   if (o >= 90) return "Legendary";
   if (o >= 75) return "Epic";
@@ -132,7 +134,31 @@ function rarityFromOverall(o: number): string {
   return "Common";
 }
 
-function moves(typeName: string, stats: CardStats): { attacks: string[]; passive: string; evolution: string } {
+const PASSIVE_BY_TYPE: Record<PokemonType, string> = {
+  Normal: "Steady Presence",
+  Fire: "Blazing Drive",
+  Water: "Deep Current",
+  Grass: "Root Network",
+  Electric: "Static Charge",
+  Ice: "Frozen Focus",
+  Fighting: "Iron Discipline",
+  Poison: "Toxic Insight",
+  Ground: "Bedrock Will",
+  Flying: "Tailwind",
+  Psychic: "Mind Link",
+  Bug: "Hive Sync",
+  Rock: "Stone Guard",
+  Ghost: "Phase Shift",
+  Dragon: "Ancient Code",
+  Dark: "Shadow Repo",
+  Steel: "Chrome Shell",
+  Fairy: "Starlight Charm",
+};
+
+function moves(
+  typeName: PokemonType,
+  stats: CardStats,
+): { attacks: string[]; passive: string; evolution: string } {
   const priority: [string, number][] = [
     ["Model Overload", stats.model],
     ["Dataset Tsunami", stats.data],
@@ -141,23 +167,13 @@ function moves(typeName: string, stats: CardStats): { attacks: string[]; passive
   priority.sort((a, b) => b[1] - a[1]);
   const attacks = priority.slice(0, 2).map(([name]) => name);
 
-  const passiveMap: Record<string, string> = {
-    Code: "Open Source Aura",
-    Vision: "Pixel Precision",
-    Audio: "Wave Resonance",
-    NLP: "Token Mastery",
-    Multimodal: "Fusion Core",
-    Agent: "Toolformer Soul",
-    Dataset: "Data Curator",
-  };
-
   const o = overall(stats);
   let evolution = "Contributor";
   if (o >= 90) evolution = "Contributor → Builder → Hub Legend";
   else if (o >= 75) evolution = "Contributor → Builder → Architect";
   else if (o >= 55) evolution = "Contributor → Builder";
 
-  return { attacks, passive: passiveMap[typeName] ?? "Hub Spirit", evolution };
+  return { attacks, passive: PASSIVE_BY_TYPE[typeName], evolution };
 }
 
 function normalizeAvatar(url: string | null | undefined): string | null {
@@ -169,9 +185,9 @@ function normalizeAvatar(url: string | null | undefined): string | null {
 export function buildCard(data: HfProfileData): CardData {
   const stats = computeStats(data);
   const o = overall(stats);
-  const typeName = detectType(data, stats);
+  const typeName = pokemonTypeFromUsername(data.user.username);
+  const typeInfo = typeForUsername(data.user.username);
   const { attacks, passive, evolution } = moves(typeName, stats);
-  const energy = energyForType(typeName);
 
   return {
     username: data.user.username,
@@ -189,8 +205,8 @@ export function buildCard(data: HfProfileData): CardData {
     totalFollowers: data.user.numFollowers,
     totalDownloads: data.totalDownloads,
     totalLikes: data.totalLikes,
-    energyName: energy.name,
-    energySymbol: energy.symbol,
+    energyName: typeInfo.nameEn,
+    energySymbol: typeInfo.symbol,
     energyCount: energyCountFromLikes(data.totalLikes),
     avatarUrl: normalizeAvatar(data.user.avatarUrl),
   };
@@ -206,7 +222,26 @@ export function stageLabel(card: CardData): string {
 }
 
 export function hpValue(card: CardData): number {
-  return Math.min(340, 60 + card.level * 2);
+  return Math.min(340, Math.round((60 + card.level * 2) / 10) * 10);
+}
+
+export function weaknessType(card: CardData): PokemonType {
+  return WEAKNESS_BY_TYPE[card.type] ?? "Psychic";
+}
+
+export function weaknessSymbol(card: CardData): string {
+  return pokemonTypeInfo(weaknessType(card)).symbol;
+}
+
+export function retreatCost(card: CardData): number {
+  const repos = card.totalModels + card.totalDatasets + card.totalSpaces;
+  if (repos < 10) return 1;
+  if (repos < 50) return 2;
+  return 3;
+}
+
+export function raritySymbol(card: CardData): string {
+  return RARITY_SYMBOLS[card.rarity] ?? RARITY_SYMBOLS.Common;
 }
 
 export function attackRows(card: CardData): [string, number, number][] {

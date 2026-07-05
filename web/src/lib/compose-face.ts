@@ -2,7 +2,7 @@ import sharp from "sharp";
 import type { CardVariant } from "./card-variant";
 import { FACE_H, FACE_W, overlaySvgForVariant, TRAINER_ART } from "./face-overlay";
 import type { CardData } from "./scoring";
-import { ENERGY_BY_TYPE, COLORLESS } from "./energy";
+import { typeColorRgb } from "./pokemon-types";
 
 async function fetchAvatarBuffer(url: string | null): Promise<Buffer | null> {
   if (!url) return null;
@@ -16,8 +16,7 @@ async function fetchAvatarBuffer(url: string | null): Promise<Buffer | null> {
 }
 
 function placeholderAvatar(card: CardData): Buffer {
-  const e = ENERGY_BY_TYPE[card.type] ?? COLORLESS;
-  const [r, g, b] = e.color;
+  const [r, g, b] = typeColorRgb(card.type);
   const initial = (card.username[0] ?? "?").toUpperCase();
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${FACE_W}" height="${FACE_H}">
@@ -41,54 +40,59 @@ async function avatarFullBleed(avatar: Buffer | null, card: CardData): Promise<B
     .toBuffer();
 }
 
-async function avatarTrainerWindow(avatar: Buffer | null, card: CardData): Promise<Buffer> {
-  const { left, top, width, height } = TRAINER_ART;
-  const base = sharp({
-    create: {
-      width: FACE_W,
-      height: FACE_H,
-      channels: 3,
-      background: { r: 200, g: 205, b: 212 },
-    },
-  });
-
+async function trainerArtLayer(avatar: Buffer | null, card: CardData): Promise<Buffer> {
+  const { width, height } = TRAINER_ART;
   if (avatar) {
-    const art = await sharp(avatar)
+    return sharp(avatar)
       .resize(width, height, { fit: "cover", position: "attention" })
-      .png()
-      .toBuffer();
-    return base
-      .composite([{ input: art, left, top }])
       .png()
       .toBuffer();
   }
 
-  const ph = await sharp(placeholderAvatar(card))
-    .extract({ left: 0, top: 0, width: FACE_W, height: Math.min(FACE_H, top + height) })
+  return sharp(placeholderAvatar(card))
     .resize(width, height, { fit: "cover" })
     .png()
     .toBuffer();
-
-  return base.composite([{ input: ph, left, top }]).png().toBuffer();
 }
 
 /**
  * Compose a 660×921 TCG face: user avatar + pre-made template overlay.
- * Full-bleed tiers fill the card like official alt-art scans for pokemon-cards-css.
+ * Trainer tiers paste the avatar above the SVG overlay — librsvg ignores masks
+ * so the art window must not rely on SVG transparency alone.
  */
 export async function composeFacePng(card: CardData, variant: CardVariant): Promise<Buffer> {
-  const avatar = await fetchAvatarBuffer(card.avatarUrl);
   const isFullBleed = variant.faceTemplate !== "trainer";
-
-  const base = isFullBleed
-    ? await avatarFullBleed(avatar, card)
-    : await avatarTrainerWindow(avatar, card);
-
   const overlaySvg = overlaySvgForVariant(card, variant);
-  const overlay = await sharp(Buffer.from(overlaySvg)).png().toBuffer();
+  const overlayP = sharp(Buffer.from(overlaySvg)).png().toBuffer();
+  const avatarP = fetchAvatarBuffer(card.avatarUrl);
 
-  return sharp(base)
-    .composite([{ input: overlay, top: 0, left: 0 }])
-    .png({ quality: 95 })
+  if (isFullBleed) {
+    const [base, overlay] = await Promise.all([
+      avatarP.then((avatar) => avatarFullBleed(avatar, card)),
+      overlayP,
+    ]);
+    return sharp(base)
+      .composite([{ input: overlay, top: 0, left: 0 }])
+      .png({ compressionLevel: 9, effort: 4 })
+      .toBuffer();
+  }
+
+  const { left, top } = TRAINER_ART;
+  const [avatar, overlay] = await Promise.all([avatarP, overlayP]);
+  const art = await trainerArtLayer(avatar, card);
+
+  return sharp({
+    create: {
+      width: FACE_W,
+      height: FACE_H,
+      channels: 3,
+      background: { r: 255, g: 203, b: 5 },
+    },
+  })
+    .composite([
+      { input: overlay, top: 0, left: 0 },
+      { input: art, left, top },
+    ])
+    .png({ compressionLevel: 9, effort: 4 })
     .toBuffer();
 }

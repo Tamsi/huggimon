@@ -1,5 +1,6 @@
 import { PokemonCard } from "@/components/PokemonCard";
 import { ProfileActions } from "@/components/ProfileActions";
+import { pokemonTypeLabel } from "@/lib/pokemon-types";
 import type { CardData } from "@/lib/scoring";
 import type { CardVariant } from "@/lib/card-variant";
 
@@ -7,10 +8,11 @@ type Props = {
   card: CardData;
   variant: CardVariant;
   faceUrl: string;
+  faceInline?: string;
   profileUrl: string;
 };
 
-export function ProfileHero({ card, variant, faceUrl, profileUrl }: Props) {
+export function ProfileHero({ card, variant, faceUrl, faceInline, profileUrl }: Props) {
   return (
     <section className="profile-hero" aria-label="My card">
       <div className="profile-hero__card">
@@ -18,7 +20,9 @@ export function ProfileHero({ card, variant, faceUrl, profileUrl }: Props) {
           card={card}
           variant={variant}
           faceUrl={faceUrl}
-          showcase={false}
+          faceSrc={faceInline}
+          imagePriority="high"
+          imageLoading="eager"
         />
       </div>
 
@@ -29,7 +33,7 @@ export function ProfileHero({ card, variant, faceUrl, profileUrl }: Props) {
           <p className="profile-hero__handle">@{card.username}</p>
           <ul className="profile-hero__tags">
             <li>LV {card.level}</li>
-            <li>{card.type}</li>
+            <li>{pokemonTypeLabel(card.type)}</li>
             <li>{variant.name}</li>
           </ul>
         </header>

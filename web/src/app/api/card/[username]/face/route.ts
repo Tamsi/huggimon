@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import sharp from "sharp";
-import { variantForLevel } from "@/lib/card-variant";
-import { composeFacePng } from "@/lib/compose-face";
-import { fetchHfProfile } from "@/lib/hf-fetcher";
-import { buildCard } from "@/lib/scoring";
+import { getCardFacePng } from "@/lib/card-face-cache";
 
 export const runtime = "nodejs";
 
@@ -13,10 +10,7 @@ export async function GET(req: Request, { params }: Params) {
   const { username } = await params;
   const story = new URL(req.url).searchParams.get("story") === "1";
   try {
-    const profile = await fetchHfProfile(username);
-    const card = buildCard(profile);
-    const variant = variantForLevel(card.level);
-    let png = await composeFacePng(card, variant);
+    let png = await getCardFacePng(username);
 
     if (story) {
       png = await sharp(png)
@@ -28,7 +22,7 @@ export async function GET(req: Request, { params }: Params) {
     return new NextResponse(new Uint8Array(png), {
       headers: {
         "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=300",
+        "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
       },
     });
   } catch (e) {

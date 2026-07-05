@@ -1,0 +1,143 @@
+"use client";
+
+import { useSpring } from "@react-spring/web";
+import { useCallback, useEffect, useRef, type RefObject } from "react";
+import { useBinderActiveCard } from "@/contexts/binder-active-card";
+import { measurePopoverAnchor } from "@/lib/popover-anchor";
+import { round } from "@/lib/math";
+
+const SPRING_POPOVER = { stiffness: 0.033, damping: 0.45 };
+const LINK_RESERVE_PX = 56;
+const POPOVER_MAX_SCALE = 1.85;
+
+function popoverScale(size: { width: number; height: number }): number {
+  const maxW = Math.min(300, window.innerWidth * 0.42);
+  const maxH = Math.min(420, (window.innerHeight - LINK_RESERVE_PX) * 0.48);
+  const scaleW = maxW / size.width;
+  const scaleH = maxH / size.height;
+  return Math.min(scaleW, scaleH, POPOVER_MAX_SCALE);
+}
+
+type Options = {
+  id: string;
+  anchorRef: RefObject<HTMLElement | null>;
+  onInteractEnd?: (delay?: number) => void;
+  onOpen?: () => void;
+};
+
+export function useBinderPopover({
+  id,
+  anchorRef,
+  onInteractEnd,
+  onOpen,
+}: Options) {
+  const binderActive = useBinderActiveCard();
+  const firstPopRef = useRef(true);
+  const active = binderActive?.activeKey === id;
+
+  const [popSprings, popApi] = useSpring(() => ({
+    scale: 1,
+    tx: 0,
+    ty: 0,
+    rotateDelta: 0,
+    config: SPRING_POPOVER,
+  }));
+
+  const setCenter = useCallback(
+    (scale: number) => {
+      const anchor = measurePopoverAnchor(anchorRef, true);
+      if (!anchor) return;
+
+      const scaledH = anchor.height * scale;
+      const lift = (scaledH - anchor.height) / 2 + LINK_RESERVE_PX / 2;
+
+      popApi.start({
+        tx: round(window.innerWidth / 2 - anchor.left),
+        ty: round(window.innerHeight / 2 - anchor.top - anchor.height / 2 - lift),
+        config: SPRING_POPOVER,
+      });
+    },
+    [anchorRef, popApi],
+  );
+
+  const retreat = useCallback(() => {
+    popApi.start({
+      scale: 1,
+      tx: 0,
+      ty: 0,
+      rotateDelta: 0,
+      config: SPRING_POPOVER,
+    });
+    onInteractEnd?.(100);
+  }, [popApi, onInteractEnd]);
+
+  const popover = useCallback(() => {
+    const anchor = measurePopoverAnchor(anchorRef, true);
+    if (!anchor) return;
+
+    const target =
+      anchorRef.current?.querySelector<HTMLElement>(".card__translater") ??
+      anchorRef.current?.querySelector<HTMLElement>(".tcg-pocket__trainer-hit") ??
+      anchorRef.current;
+
+    if (!target) return;
+
+    const scale = popoverScale({
+      width: target.offsetWidth,
+      height: target.offsetHeight,
+    });
+    setCenter(scale);
+    onOpen?.();
+
+    if (firstPopRef.current) {
+      popApi.start({ rotateDelta: 360, config: SPRING_POPOVER });
+      firstPopRef.current = false;
+    }
+    popApi.start({ scale, config: SPRING_POPOVER });
+  }, [anchorRef, popApi, setCenter, onOpen]);
+
+  const close = useCallback(() => {
+    binderActive?.close();
+    retreat();
+  }, [binderActive, retreat]);
+
+  const open = useCallback(() => {
+    binderActive?.open(id);
+    popover();
+  }, [binderActive, id, popover]);
+
+  const toggle = useCallback(() => {
+    if (active) close();
+    else open();
+  }, [active, close, open]);
+
+  useEffect(() => {
+    if (!binderActive) return;
+    if (binderActive.activeKey !== id) {
+      popApi.start({
+        scale: 1,
+        tx: 0,
+        ty: 0,
+        rotateDelta: 0,
+        config: SPRING_POPOVER,
+      });
+    }
+  }, [binderActive, id, popApi]);
+
+  useEffect(() => {
+    if (!active) return;
+    const onResize = () => {
+      const s = popSprings.scale.get();
+      if (s > 1) setCenter(s);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [active, setCenter, popSprings.scale]);
+
+  return {
+    active,
+    toggle,
+    close,
+    popSprings,
+  };
+}

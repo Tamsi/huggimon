@@ -11,20 +11,14 @@ export async function GET(_req: Request, { params }: Params) {
     const profile = await fetchHfProfile(username);
     const card = buildCard(profile);
     const variant = variantForLevel(card.level);
-    return NextResponse.json({
-      username: card.username,
-      displayName: card.displayName,
-      level: card.level,
-      type: card.type,
-      rarity: card.rarity,
-      variant: variant.name,
-      dataRarity: variant.dataRarity,
-      stats: card.stats,
-      attacks: card.attacks,
-      passive: card.passive,
-      evolution: card.evolution,
-      energy: { name: card.energyName, symbol: card.energySymbol, count: card.energyCount },
-    });
+    return NextResponse.json(
+      { card, variant },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        },
+      },
+    );
   } catch (e) {
     const message = e instanceof Error ? e.message : "Not found";
     return NextResponse.json({ error: message }, { status: 404 });

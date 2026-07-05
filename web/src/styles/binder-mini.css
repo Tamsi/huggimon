@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
-   Binder mini-cards — follower trainers + energy (likes)
+   Binder mini-cards — follower trainers + trainer likes
    ═══════════════════════════════════════════════════════════════ */
 
 .hpkm-card,
-.hpke-card {
+.hpkt-card {
   display: block;
   width: 100%;
   height: 100%;
@@ -11,16 +11,258 @@
   color: inherit;
   border-radius: 6px;
   overflow: hidden;
+}
+
+.hpkm-card {
   transition: transform 0.12s ease;
 }
 
 .hpkm-card:hover,
-.hpke-card:hover {
-  transform: scale(1.03);
-  z-index: 2;
+.hpkt-card:hover {
+  transform: none;
 }
 
-/* ── Follower mini trainer cards ── */
+.tcg-pocket__card .hpkt-card {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Pocket holo cards (popover on click, like poke-holo.simey.me) ── */
+.tcg-pocket__card {
+  position: absolute;
+  inset: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.tcg-pocket__card .card.hpk-pocket {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100%;
+  margin: 0 !important;
+  pointer-events: auto;
+  transition: opacity 0.2s ease;
+}
+
+.tcg-pocket__card .card.hpk-pocket .card__translater {
+  width: 100%;
+  height: 100%;
+}
+
+.tcg-pocket__card .card.hpk-pocket:not(.active):not(.interacting) .card__translater {
+  --translate-z: 0px;
+  --card-scale: 1;
+}
+
+.tcg-pocket__card .card.hpk-pocket .card__rotator {
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.tcg-pocket__card .card.hpk-pocket.active {
+  position: relative;
+  z-index: 1 !important;
+  transform: translate3d(0, 0, 0.1px) !important;
+  --card-opacity: 1 !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.tcg-pocket__card .card.hpk-pocket.active.hpk-pocket--in-pocket {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hpk-card-popup__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 340;
+  margin: 0;
+  padding: 0;
+  border: none;
+  pointer-events: auto;
+  cursor: pointer;
+  background: rgba(4, 8, 24, 0.72);
+  animation: hpk-popup-scrim-in 0.32s ease;
+}
+
+.hpk-pocket-portal-slot {
+  position: fixed;
+  z-index: 380;
+  pointer-events: none;
+}
+
+.hpk-pocket-portal-slot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 155%;
+  height: 155%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.05) 38%,
+    transparent 72%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hpk-pocket-portal-slot .card {
+  pointer-events: auto;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100%;
+  margin: 0 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  --card-opacity: 1 !important;
+}
+
+.hpk-pocket-portal-slot .card.hpk-trainer-face,
+.hpk-pocket-portal-slot .card.hpk-full-bleed {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.hpk-pocket-portal-slot .card .card__translater {
+  width: 100%;
+  height: 100%;
+}
+
+.hpk-pocket-portal-slot .card.hpk-pocket.active {
+  visibility: visible !important;
+}
+
+.hpk-pocket-portal-slot .card.hpk-pocket.active .card__rotator {
+  box-shadow:
+    0 0 3px -1px white,
+    0 0 3px 1px var(--card-edge),
+    0 0 18px 4px var(--card-glow),
+    0 28px 56px -14px rgba(0, 0, 0, 0.7),
+    0 0 90px -8px var(--card-glow),
+    0 0 140px -24px rgba(255, 255, 255, 0.2);
+}
+
+.hpk-card-popup__link {
+  position: fixed;
+  z-index: 420;
+  pointer-events: auto;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  animation: hpk-popup-link-in 0.35s ease 0.12s both;
+}
+
+.hpk-card-popup__link:hover {
+  color: #fff;
+}
+
+@keyframes hpk-popup-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hpk-popup-link-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.tcg-pocket__trainer-anchor {
+  position: absolute;
+  inset: 2px;
+  transform-origin: center center;
+  z-index: 1;
+}
+
+.tcg-pocket__trainer-anchor--active {
+  z-index: 1;
+}
+
+.tcg-pocket__trainer-anchor--in-pocket {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hpk-pocket-portal-slot .tcg-pocket__trainer-anchor {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+}
+
+.hpk-pocket-portal-slot .hpkt-card {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.hpk-pocket-portal-slot .hpkt-card--interacting .hpkt-card__foil {
+  opacity: 0.95;
+}
+
+.tcg-pocket__trainer-hit {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: inherit;
+  color: inherit;
+}
+
+.tcg-pocket__trainer-hit:disabled {
+  cursor: default;
+}
+
+.tcg-pocket__card .card.hpk-pocket .card__rotator:focus {
+  box-shadow:
+    0 0 2px 0px var(--card-edge),
+    0 0 8px 1px var(--card-glow),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.tcg-pocket__skeleton {
+  animation: tcg-pocket-pulse 1.4s ease-in-out infinite;
+}
+
+.tcg-pocket__skeleton--error {
+  animation: none;
+  opacity: 0.55;
+  filter: grayscale(0.35) brightness(0.85);
+}
+
+@keyframes tcg-pocket-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+.tcg-pocket--filled .tcg-pocket__well {
+  overflow: visible;
+}
+
+/* ── Follower mini trainer cards (legacy) ── */
 .hpkm-card {
   position: relative;
   padding: 3px;
@@ -184,81 +426,302 @@
   100% { background-position: 0% 0%; }
 }
 
-/* ── Energy cards (likes) ── */
-.hpke-card {
-  position: relative;
-  padding: 3px;
-  box-sizing: border-box;
-  font-family: var(--hk-font);
-}
-
-.hpke-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
+.hpkt-tilt {
+  display: block;
   width: 100%;
   height: 100%;
-  border-radius: 4px;
-  padding: 6px 4px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ── Trainer cards (liked repos) — TCG layout ── */
+.hpkt-card {
+  position: relative;
+  padding: 2px;
   box-sizing: border-box;
-  text-align: center;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.75));
-  border: 2px solid rgba(0, 0, 0, 0.12);
+  font-family: var(--hk-font);
+  background: #eab308;
+  border-radius: 4px;
+  transform-style: preserve-3d;
+  transition: box-shadow 0.25s ease;
 }
 
-.hpke-type {
-  font-size: 7px;
+.hpkt-card__foil,
+.hpkt-card__glare {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.hpkt-card__foil {
+  opacity: 0.3;
+  background: linear-gradient(
+    115deg,
+    transparent 28%,
+    rgba(255, 255, 255, 0.18) 40%,
+    rgba(180, 220, 255, 0.5) 47%,
+    rgba(255, 230, 120, 0.4) 53%,
+    rgba(255, 255, 255, 0.12) 60%,
+    transparent 72%
+  );
+  background-size: 220% 220%;
+  background-position: var(--hpkt-holo-x, 50%) var(--hpkt-holo-y, 50%);
+  mix-blend-mode: color-dodge;
+  animation: hpkt-foil-ambient 7s ease-in-out infinite;
+}
+
+.hpkt-card--interacting .hpkt-card__foil {
+  opacity: 0.88;
+  animation: none;
+}
+
+.hpkt-card__glare {
+  opacity: 0;
+  background: radial-gradient(
+    farthest-corner circle at var(--hpkt-holo-x, 50%) var(--hpkt-holo-y, 50%),
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.1) 40%,
+    transparent 65%
+  );
+  mix-blend-mode: overlay;
+  transition: opacity 0.2s ease;
+}
+
+.hpkt-card--interacting .hpkt-card__glare {
+  opacity: 1;
+}
+
+.hpkt-card--interacting {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 6px 18px rgba(0, 0, 0, 0.32);
+}
+
+@keyframes hpkt-foil-ambient {
+  0%,
+  100% {
+    background-position: 28% 38%;
+  }
+
+  50% {
+    background-position: 72% 62%;
+  }
+}
+
+.hpkt-frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: 2px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.hpkt-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2px;
+  flex-shrink: 0;
+  min-height: 10px;
+  padding: 2px 2px 0;
+}
+
+.hpkt-header__label {
+  font-size: 5px;
   font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.85;
-}
-
-.hpke-symbol {
-  font-size: 22px;
+  font-style: italic;
+  letter-spacing: 0.08em;
   line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  color: #1e293b;
+  text-transform: uppercase;
 }
 
-.hpke-name {
+.hpkt-header__tab {
+  flex-shrink: 0;
+  padding: 1px 4px 2px;
+  font-size: 4.5px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  color: #fff;
+  text-transform: uppercase;
+  background: var(--hpkt-accent);
+  transform: skewX(-12deg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.hpkt-name {
   margin: 0;
-  font-size: 8px;
-  font-weight: 800;
-  line-height: 1.2;
+  padding: 1px 3px 2px;
+  font-size: 6px;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hpkt-art {
+  position: relative;
+  flex-shrink: 0;
+  height: 34%;
+  min-height: 28px;
+  margin: 0 3px;
+  border: 1px solid rgba(15, 23, 42, 0.22);
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--hpkt-art-bg);
+}
+
+.hpkt-art__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hpkt-art__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 35%,
+    rgba(15, 23, 42, 0.12) 100%
+  );
+}
+
+.hpkt-art__glyph {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: var(--hpkt-art-glyph);
+  background-size: 18px 18px;
+  transition: opacity 0.2s ease;
+}
+
+.hpkt-art--fallback .hpkt-art__glyph {
+  opacity: 0.22;
+}
+
+.hpkt-art--model {
+  --hpkt-art-bg: linear-gradient(160deg, #dbeafe 0%, #60a5fa 55%, #2563eb 100%);
+  --hpkt-art-glyph: radial-gradient(circle at 50% 50%, #1e40af 1.5px, transparent 2px);
+}
+
+.hpkt-art--dataset {
+  --hpkt-art-bg: linear-gradient(160deg, #dcfce7 0%, #4ade80 55%, #16a34a 100%);
+}
+
+.hpkt-art--dataset .hpkt-art__glyph {
+  background:
+    linear-gradient(90deg, rgba(20, 83, 45, 0.35) 1px, transparent 1px),
+    linear-gradient(rgba(20, 83, 45, 0.35) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.hpkt-art--space {
+  --hpkt-art-bg: linear-gradient(160deg, #ffedd5 0%, #fb923c 55%, #ea580c 100%);
+  --hpkt-art-glyph: radial-gradient(circle at 50% 35%, rgba(124, 45, 18, 0.35) 8px, transparent 9px);
+}
+
+.hpkt-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 2px 3px 0;
+  padding: 3px 3px 12px;
+  border-radius: 2px 2px 0 0;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      #f8fafc 0px,
+      #f8fafc 3px,
+      #e2e8f0 3px,
+      #e2e8f0 4px
+    );
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-bottom: none;
+}
+
+.hpkt-effect {
+  margin: 0;
+  font-size: 4.5px;
+  font-weight: 600;
+  line-height: 1.35;
   color: #1e293b;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.hpke-repo-type {
-  font-size: 6px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.55;
+.hpkt-rule {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  max-width: 72%;
+  padding: 1px 3px;
+  font-size: 3.5px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: right;
+  color: #fff;
+  border-radius: 6px;
+  background: var(--hpkt-accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-/* Energy type accents */
-.hpke-card--fire { background: linear-gradient(145deg, #ef4444, #b91c1c); }
-.hpke-card--water { background: linear-gradient(145deg, #3b82f6, #1d4ed8); }
-.hpke-card--lightning { background: linear-gradient(145deg, #facc15, #ca8a04); }
-.hpke-card--grass { background: linear-gradient(145deg, #22c55e, #15803d); }
-.hpke-card--psychic { background: linear-gradient(145deg, #a855f7, #7e22ce); }
-.hpke-card--metal { background: linear-gradient(145deg, #94a3b8, #475569); }
-.hpke-card--fairy { background: linear-gradient(145deg, #ec4899, #be185d); }
-.hpke-card--colorless { background: linear-gradient(145deg, #e2e8f0, #94a3b8); }
+.hpkt-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 1px 3px 2px;
+  font-size: 3.5px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  border-top: 1px solid rgba(15, 23, 42, 0.1);
+}
 
-.hpke-card--fire .hpke-inner { border-color: #fca5a5; }
-.hpke-card--water .hpke-inner { border-color: #93c5fd; }
-.hpke-card--lightning .hpke-inner { border-color: #fde047; }
-.hpke-card--grass .hpke-inner { border-color: #86efac; }
-.hpke-card--psychic .hpke-inner { border-color: #d8b4fe; }
-.hpke-card--metal .hpke-inner { border-color: #cbd5e1; }
-.hpke-card--fairy .hpke-inner { border-color: #f9a8d4; }
+.hpkt-footer__owner {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hpkt-footer__kind {
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--hpkt-accent);
+}
+
+/* Subtype accents */
+.hpkt-card--item {
+  --hpkt-accent: #2563eb;
+}
+
+.hpkt-card--supporter {
+  --hpkt-accent: #ea580c;
+}
+
+.hpkt-card--stadium {
+  --hpkt-accent: #16a34a;
+}
 
 .tcg-page__stats {
   display: block;
@@ -266,13 +729,19 @@
   margin-top: 2px;
   font-size: 8px;
   font-weight: 600;
-  color: var(--hk-ink-faint);
+  color: rgba(255, 255, 255, 0.38);
   text-align: center;
 }
 
 .tcg-binder__sheet--loading {
   opacity: 0.7;
   pointer-events: none;
+}
+
+.tcg-binder__sheet--loading:has(.card.hpk-pocket.active),
+.tcg-binder__sheet--loading:has(.tcg-pocket__trainer-anchor--active) {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

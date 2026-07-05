@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ProfileSearch } from "@/components/ProfileSearch";
 
 export default function Home() {
@@ -8,7 +9,14 @@ export default function Home() {
           <div className="hk-home__binder-cover">
             <div className="hk-home__binder-spine" />
             <div className="hk-home__binder-title">
-              <strong>HuggiMon</strong>
+              <Image
+                src="/brand/huggimon-logo.png"
+                alt=""
+                width={1024}
+                height={566}
+                className="hk-home__binder-logo"
+                priority
+              />
               <em>Trainer Cards</em>
             </div>
           </div>

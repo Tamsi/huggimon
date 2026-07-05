@@ -26,8 +26,8 @@
   --hk-ink-faint: #718096;
   --hk-plastic: rgba(255, 255, 255, 0.5);
   --hk-pocket-inset: #a8c4e8;
-  --hk-wood-1: #1b2a6d;
-  --hk-wood-2: #0d1642;
+  --hk-wood-1: #1e1e24;
+  --hk-wood-2: #111114;
   --hk-ring: linear-gradient(
     145deg,
     #fefefe 0%,
@@ -58,15 +58,14 @@
   min-height: 100vh;
   background-color: var(--hk-wood-2);
   background-image:
-    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(59, 76, 202, 0.35), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 80% 100%, rgba(255, 203, 5, 0.12), transparent 50%),
-    radial-gradient(ellipse 40% 30% at 10% 80%, rgba(204, 0, 0, 0.15), transparent 50%),
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.045), transparent 58%),
+    radial-gradient(ellipse 45% 35% at 85% 100%, rgba(255, 203, 5, 0.035), transparent 52%),
     repeating-linear-gradient(
       97deg,
       transparent 0,
       transparent 4px,
-      rgba(0, 0, 0, 0.04) 4px,
-      rgba(0, 0, 0, 0.04) 5px
+      rgba(0, 0, 0, 0.035) 4px,
+      rgba(0, 0, 0, 0.035) 5px
     ),
     linear-gradient(175deg, var(--hk-wood-1) 0%, var(--hk-wood-2) 100%);
 }
@@ -76,51 +75,458 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(247, 242, 232, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(16, 18, 26, 0.9);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(12px);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .hk-header__inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 12px 20px;
+  padding: 14px 20px;
 }
 
 .hk-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
   text-decoration: none;
   color: var(--hk-ink);
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.25));
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
-.hk-logo__mark {
+.hk-logo:hover {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.hk-logo__img {
+  display: block;
+  height: 46px;
+  width: auto;
+  max-width: min(220px, 58vw);
+}
+
+.hk-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.hk-how-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 2px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.hk-how-link:hover {
+  color: #fff;
+}
+
+.hk-how-link__arrow {
+  width: 14px;
+  height: 14px;
+  opacity: 0.75;
+}
+
+.hk-github-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(8, 10, 18, 0.72);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.hk-github-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(14, 16, 26, 0.88);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 12px 28px rgba(0, 0, 0, 0.4);
+}
+
+.hk-github-btn:active {
+  transform: translateY(0);
+}
+
+.hk-github-btn__icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.hk-github-btn__label {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.hk-github-btn__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 2.5rem;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hk-github-btn__star {
+  width: 12px;
+  height: 12px;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+/* ── How it works modal ── */
+.hk-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: linear-gradient(145deg, var(--hk-red-bright), var(--hk-red-deep));
-  color: #fff;
-  font-size: 15px;
-  font-weight: 900;
-  box-shadow: 0 3px 0 #5c0a1a, 0 6px 12px rgba(0, 0, 0, 0.3);
+  padding: 24px 16px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: rgba(6, 8, 20, 0.72);
+  backdrop-filter: blur(10px);
+  animation: hk-modal-fade 0.2s ease;
 }
 
-.hk-logo__text {
-  font-size: 18px;
+.hk-modal::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes hk-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hk-modal__panel {
+  position: relative;
+  width: min(640px, 100%);
+  max-height: min(88vh, 820px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin: auto;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 203, 5, 0.45);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, transparent 38%),
+    linear-gradient(180deg, #121a42 0%, #0d1230 55%, #160d28 100%);
+  color: #e8ecf8;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.1) inset,
+    0 28px 80px rgba(0, 0, 0, 0.55);
+  outline: none;
+  animation: hk-modal-slide 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hk-modal__panel::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes hk-modal-slide {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hk-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.hk-modal__close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.hk-modal__hero {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hk-modal__eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hk-yellow);
+}
+
+.hk-modal__title {
+  margin: 0 0 10px;
+  font-size: clamp(1.35rem, 4vw, 1.65rem);
   font-weight: 900;
   letter-spacing: -0.02em;
+  color: #fff;
 }
 
-.hk-logo__text span {
-  color: var(--hk-red);
+.hk-modal__lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(232, 236, 248, 0.78);
+}
+
+.hk-modal__body {
+  padding: 8px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.hk-modal__section-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.hk-modal__section-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(232, 236, 248, 0.68);
+}
+
+.hk-modal__section-desc strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
+}
+
+.hk-modal__formula {
+  margin: 0 0 8px;
+}
+
+.hk-modal__formula code {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  color: #fde68a;
+}
+
+.hk-modal__stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hk-modal__stat {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hk-modal__stat-name {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.hk-modal__stat-detail {
+  display: block;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(232, 236, 248, 0.62);
+}
+
+.hk-modal__section--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 520px) {
+  .hk-modal__section--split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hk-modal__tiers {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hk-modal__tier {
+  display: grid;
+  grid-template-columns: 88px 72px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+}
+
+.hk-modal__tier-label {
+  font-weight: 800;
+  color: #fff;
+}
+
+.hk-modal__tier-range {
+  font-variant-numeric: tabular-nums;
+  color: var(--hk-yellow);
+  font-weight: 700;
+}
+
+.hk-modal__tier-note {
+  color: rgba(232, 236, 248, 0.58);
+}
+
+.hk-modal__variant-list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+}
+
+.hk-modal__variant-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 12px;
+}
+
+.hk-modal__variant-level {
+  flex-shrink: 0;
+  min-width: 52px;
+  font-weight: 800;
+  color: var(--hk-yellow);
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-modal__variant-name {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+
+.hk-modal__section--muted {
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hk-modal__bullets {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(232, 236, 248, 0.72);
+}
+
+.hk-modal__bullets li + li {
+  margin-top: 6px;
+}
+
+.hk-modal__bullets strong {
+  color: #fff;
+}
+
+@media (max-width: 560px) {
+  .hk-header__nav {
+    gap: 12px;
+  }
+
+  .hk-how-link {
+    font-size: 13px;
+  }
+
+  .hk-github-btn__label {
+    display: none;
+  }
+
+  .hk-github-btn {
+    padding: 7px 8px;
+    gap: 0;
+  }
 }
 
 .hk-nav-link {
@@ -201,6 +607,14 @@
   font-weight: 900;
   letter-spacing: 0.04em;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.hk-home__binder-logo {
+  display: block;
+  width: min(78%, 200px);
+  height: auto;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
 }
 
 .hk-home__binder-title em {
@@ -749,12 +1163,13 @@
   font-size: clamp(5px, 1.6vw, 9px);
 }
 
-/* Empty pocket — Pokémon card back */
+/* Empty pocket — HuggiMon card back */
 .hk-card-back {
   width: 100%;
   height: 100%;
   border-radius: 3px;
   background:
+    url("/brand/huggimon-logo.png") center / 72% auto no-repeat,
     radial-gradient(circle at 50% 42%, #1a3460 0%, #1a3460 26%, transparent 27%),
     repeating-conic-gradient(
       from -4deg at 50% 50%,

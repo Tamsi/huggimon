@@ -14,6 +14,11 @@
   width: 100%;
 }
 
+.card.hpk-trainer-face:not(.hpk-pocket) .card__rotator,
+.card.hpk-full-bleed:not(.hpk-pocket) .card__rotator {
+  cursor: pointer;
+}
+
 /* Trainer template: holo clipped to art window (--clip-trainer) */
 .card.hpk-trainer-face .card__shine,
 .card.hpk-trainer-face .card__shine::before,
@@ -43,11 +48,18 @@
   mask-image: none !important;
 }
 
+.card.hpk-pocket .card__translater,
+.card.hpk-pocket .card__rotator {
+  transition: box-shadow 0.25s ease, opacity 0.25s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card.hpk-trainer-face .card__translater,
   .card.hpk-trainer-face .card__rotator,
   .card.hpk-full-bleed .card__translater,
-  .card.hpk-full-bleed .card__rotator {
+  .card.hpk-full-bleed .card__rotator,
+  .card.hpk-pocket .card__translater,
+  .card.hpk-pocket .card__rotator {
     transition: none !important;
   }
 }

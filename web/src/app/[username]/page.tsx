@@ -1,8 +1,7 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ProfileBinder } from "@/components/ProfileBinder";
-import { SiteHeader } from "@/components/SiteHeader";
-import { fetchBinderPage } from "@/lib/binder-fetcher";
+import { getCardFacePng } from "@/lib/card-face-cache";
 import { variantForLevel } from "@/lib/card-variant";
 import { fetchHfProfile } from "@/lib/hf-fetcher";
 import { buildCard } from "@/lib/scoring";
@@ -46,19 +45,22 @@ export default async function ProfilePage({ params }: Props) {
 
   const variant = variantForLevel(card.level);
   const faceUrl = `/api/card/${encodeURIComponent(card.username)}/face`;
-  const url = await profileUrl(card.username);
-  const binderPage = await fetchBinderPage(card.username, 0);
+
+  const [url, facePng] = await Promise.all([
+    profileUrl(card.username),
+    getCardFacePng(card.username),
+  ]);
+  const faceInline = `data:image/png;base64,${facePng.toString("base64")}`;
 
   return (
     <div className="hk-shell hk-desk hk-body">
-      <SiteHeader />
       <main className="hk-main">
         <ProfileBinder
           card={card}
           variant={variant}
           faceUrl={faceUrl}
+          faceInline={faceInline}
           profileUrl={url}
-          binderPage={binderPage}
         />
       </main>
     </div>

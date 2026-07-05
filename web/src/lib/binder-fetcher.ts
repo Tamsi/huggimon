@@ -1,9 +1,9 @@
 import {
-  COLORLESS,
-  energyForType,
-  energyTypeClass,
-  type EnergyInfo,
-} from "./energy";
+  trainerCardName,
+  trainerOwner,
+  trainerThemeForRepo,
+} from "./trainer-card";
+import { hfRepoThumbnailUrl } from "./repo-thumbnail";
 
 const HF_BASE = "https://huggingface.co";
 const POCKETS_PER_PAGE = 9;
@@ -24,48 +24,39 @@ export type HfLikeRaw = {
   repo: { name: string; type: string };
 };
 
-export type FollowerMini = {
+/** Lightweight follower ref — full card loads client-side when visible */
+export type FollowerRef = {
   username: string;
   displayName: string;
-  avatarUrl: string | null;
-  level: number;
-  stars: number;
-  energyCount: number;
 };
 
-export type LikeEnergyCard = {
+export type LikeTrainerCard = {
   repoName: string;
   repoType: string;
   shortName: string;
-  energyName: string;
-  energySymbol: string;
-  energyClass: string;
+  displayName: string;
+  owner: string;
+  subtypeLabel: string;
+  trainerClass: string;
+  effectText: string;
+  ruleText: string;
+  artUrl: string;
   hfUrl: string;
 };
 
 export type BinderSlot =
-  | { kind: "follower"; card: FollowerMini }
-  | { kind: "energy"; card: LikeEnergyCard }
+  | { kind: "follower"; follower: FollowerRef }
+  | { kind: "trainer"; card: LikeTrainerCard }
   | { kind: "empty" };
 
 export type BinderPageData = {
   pageIndex: number;
   totalPages: number;
   label: string;
-  pageKind: "followers" | "energy";
+  pageKind: "followers" | "trainers";
   totalFollowers: number;
   totalLikes: number;
   slots: BinderSlot[];
-};
-
-type OverviewResponse = {
-  user?: string;
-  fullname?: string;
-  avatarUrl?: string;
-  numFollowers?: number;
-  numModels?: number;
-  numDatasets?: number;
-  numSpaces?: number;
 };
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -79,31 +70,8 @@ async function fetchJson<T>(url: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-function normalizeAvatar(url: string | undefined | null): string | null {
-  if (!url) return null;
-  if (url.startsWith("/")) return `${HF_BASE}${url}`;
-  return url;
-}
-
 function cleanUsername(username: string): string {
   return username.trim().replace(/^@/, "");
-}
-
-export function computeMiniStats(
-  numFollowers: number,
-  numModels: number,
-  numDatasets: number,
-  numSpaces: number,
-): { level: number; stars: number; energyCount: number } {
-  const miniScore =
-    numModels * 4 + numDatasets * 4 + numSpaces * 6 + Math.min(numFollowers, 50);
-  const level = Math.max(1, Math.min(100, miniScore));
-  let stars = 1;
-  if (miniScore >= 90) stars = 4;
-  else if (miniScore >= 60) stars = 3;
-  else if (miniScore >= 30) stars = 2;
-  const energyCount = Math.min(6, Math.floor(Math.log2(numFollowers + 1)));
-  return { level, stars, energyCount };
 }
 
 async function getFollowers(username: string): Promise<HfFollowerRaw[]> {
@@ -132,81 +100,28 @@ async function getLikes(username: string): Promise<HfLikeRaw[]> {
   return data;
 }
 
-async function fetchFollowerOverview(username: string): Promise<OverviewResponse | null> {
-  try {
-    return await fetchJson<OverviewResponse>(
-      `${HF_BASE}/api/users/${encodeURIComponent(username)}/overview`,
-    );
-  } catch {
-    return null;
-  }
-}
-
-export async function buildFollowerMini(
-  raw: HfFollowerRaw,
-  overview?: OverviewResponse | null,
-): Promise<FollowerMini> {
-  const username = raw.user;
-  let displayName = raw.fullname || username;
-  let avatarUrl = normalizeAvatar(raw.avatarUrl);
-  let numFollowers = 0;
-  let numModels = 0;
-  let numDatasets = 0;
-  let numSpaces = 0;
-
-  const ov = overview ?? (await fetchFollowerOverview(username));
-  if (ov) {
-    displayName = ov.fullname || displayName;
-    avatarUrl = normalizeAvatar(ov.avatarUrl) ?? avatarUrl;
-    numFollowers = ov.numFollowers ?? 0;
-    numModels = ov.numModels ?? 0;
-    numDatasets = ov.numDatasets ?? 0;
-    numSpaces = ov.numSpaces ?? 0;
-  }
-
-  const { level, stars, energyCount } = computeMiniStats(
-    numFollowers,
-    numModels,
-    numDatasets,
-    numSpaces,
-  );
-
+function followerRef(raw: HfFollowerRaw): FollowerRef {
   return {
-    username,
-    displayName,
-    avatarUrl,
-    level,
-    stars,
-    energyCount,
+    username: raw.user,
+    displayName: raw.fullname || raw.user,
   };
 }
 
-function energyForRepoType(repoType: string): EnergyInfo {
-  switch (repoType) {
-    case "model":
-      return energyForType("NLP");
-    case "space":
-      return energyForType("Code");
-    case "dataset":
-      return energyForType("Dataset");
-    case "kernel":
-      return energyForType("Agent");
-    default:
-      return COLORLESS;
-  }
-}
-
-export function likeToEnergyCard(like: HfLikeRaw): LikeEnergyCard {
+export function likeToTrainerCard(like: HfLikeRaw): LikeTrainerCard {
   const repoName = like.repo.name;
   const shortName = repoName.split("/").pop() ?? repoName;
-  const energy = energyForRepoType(like.repo.type);
+  const theme = trainerThemeForRepo(like.repo.type);
   return {
     repoName,
     repoType: like.repo.type,
     shortName,
-    energyName: energy.name,
-    energySymbol: energy.symbol,
-    energyClass: energyTypeClass(energy.name),
+    displayName: trainerCardName(repoName),
+    owner: trainerOwner(repoName),
+    subtypeLabel: theme.subtypeLabel,
+    trainerClass: theme.cssClass,
+    effectText: theme.effectText,
+    ruleText: theme.ruleText,
+    artUrl: hfRepoThumbnailUrl(repoName, like.repo.type),
     hfUrl: `${HF_BASE}/${repoName}`,
   };
 }
@@ -218,16 +133,17 @@ function padSlots(slots: BinderSlot[]): BinderSlot[] {
 }
 
 function pageLabel(
-  pageKind: "followers" | "energy",
-  pageIndex: number,
+  pageKind: "followers" | "trainers",
+  _pageIndex: number,
   subIndex: number,
 ): string {
   if (pageKind === "followers") {
     return subIndex === 0 ? "Followers" : `Followers · ${subIndex + 1}`;
   }
-  return subIndex === 0 ? "Energy · Likes" : `Energy · Likes ${subIndex + 1}`;
+  return subIndex === 0 ? "Trainer · Likes" : `Trainer · Likes ${subIndex + 1}`;
 }
 
+/** Page metadata + slot refs only — no per-follower HF profile fetch */
 export async function fetchBinderPage(
   username: string,
   pageIndex: number,
@@ -240,16 +156,17 @@ export async function fetchBinderPage(
 
   const followerPages =
     followers.length > 0 ? Math.ceil(followers.length / POCKETS_PER_PAGE) : 0;
-  const energyPages =
+  const trainerPages =
     likes.length > 0 ? Math.ceil(likes.length / POCKETS_PER_PAGE) : 0;
-  const totalPages = Math.max(1, followerPages + energyPages);
+  const totalPages = Math.max(1, followerPages + trainerPages);
   const safeIndex = Math.max(0, Math.min(pageIndex, totalPages - 1));
 
   if (safeIndex < followerPages) {
     const start = safeIndex * POCKETS_PER_PAGE;
     const batch = followers.slice(start, start + POCKETS_PER_PAGE);
-    const cards = await Promise.all(batch.map((f) => buildFollowerMini(f)));
-    const slots = padSlots(cards.map((c) => ({ kind: "follower" as const, card: c })));
+    const slots = padSlots(
+      batch.map((f) => ({ kind: "follower" as const, follower: followerRef(f) })),
+    );
     return {
       pageIndex: safeIndex,
       totalPages,
@@ -261,17 +178,18 @@ export async function fetchBinderPage(
     };
   }
 
-  const energyIndex = safeIndex - followerPages;
-  const start = energyIndex * POCKETS_PER_PAGE;
+  const trainerIndex = safeIndex - followerPages;
+  const start = trainerIndex * POCKETS_PER_PAGE;
   const batch = likes.slice(start, start + POCKETS_PER_PAGE);
-  const cards = batch.map(likeToEnergyCard);
-  const slots = padSlots(cards.map((c) => ({ kind: "energy" as const, card: c })));
+  const slots = padSlots(
+    batch.map((c) => ({ kind: "trainer" as const, card: likeToTrainerCard(c) })),
+  );
 
   return {
     pageIndex: safeIndex,
     totalPages,
-    label: pageLabel("energy", safeIndex, energyIndex),
-    pageKind: "energy",
+    label: pageLabel("trainers", safeIndex, trainerIndex),
+    pageKind: "trainers",
     totalFollowers: followers.length,
     totalLikes: likes.length,
     slots,

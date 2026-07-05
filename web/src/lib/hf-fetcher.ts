@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 const MAX_ITEMS = 200;
 
 export type UserProfile = {
@@ -76,7 +78,7 @@ type SpaceItem = {
   description?: string;
 };
 
-export async function fetchHfProfile(username: string): Promise<HfProfileData> {
+export const fetchHfProfile = cache(async (username: string): Promise<HfProfileData> => {
   const clean = username.trim().replace(/^@/, "");
   if (!clean) throw new Error("Username is required.");
 
@@ -155,4 +157,4 @@ export async function fetchHfProfile(username: string): Promise<HfProfileData> {
     totalLikes,
     totalDownloads,
   };
-}
+});
