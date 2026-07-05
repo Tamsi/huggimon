@@ -3,9 +3,14 @@
 import json
 
 
+def _js_string_for_script_tag(value: str) -> str:
+    """JSON-encode a value and escape ``</`` so it cannot close an HTML script tag."""
+    return json.dumps(value).replace("</", "<\\/")
+
+
 def render_binder_interactive(username: str) -> str:
     """Return a scoped <style> + <script> block for animated binder paging."""
-    username_js = json.dumps(username)
+    username_js = _js_string_for_script_tag(username)
 
     return f"""<style>
 #hbi-binder-wrap {{
