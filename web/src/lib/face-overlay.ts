@@ -1,5 +1,6 @@
 import type { CardVariant } from "./card-variant";
 import { cardBorderTier } from "./card-variant";
+import { FACE_FONT_ATTR, svgEmbeddedFontDefs } from "./face-font";
 import { pokemonTypeInfo, typeCardTheme, type PokemonType, type TypeCardTheme, pokemonTypeLabel } from "./pokemon-types";
 import type { CardData } from "./scoring";
 import {
@@ -11,10 +12,6 @@ import {
   stageLabel,
   weaknessSymbol,
 } from "./scoring";
-
-const FONT =
-  "'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', 'Helvetica Neue', Arial, sans-serif";
-const FONT_ATTR = `font-family="${FONT}"`;
 const INFO_GOLD = "#e9c46a";
 
 export const FACE_W = 660;
@@ -177,7 +174,7 @@ function hpCluster(opts: {
   const textRight = iconCx - TYPE_DOT_R - 10;
   return `
     ${typeDot(iconCx, iconCy, type, TYPE_DOT_R)}
-    <text x="${textRight}" y="${baseline}" text-anchor="end" fill="${hpColor}" style="${stroke}" ${FONT_ATTR}>
+    <text x="${textRight}" y="${baseline}" text-anchor="end" fill="${hpColor}" style="${stroke}" ${FACE_FONT_ATTR}>
       <tspan font-size="15" font-weight="800">HP</tspan>
       <tspan font-size="34" font-weight="900" dx="5">${hp}</tspan>
     </text>`;
@@ -195,7 +192,7 @@ function fitNameText(
   const strokeAttr = stroke
     ? ` style="paint-order:stroke;stroke:${stroke};stroke-width:3px"`
     : "";
-  return `<text x="${x}" y="${y}" font-size="${fontSize}" font-weight="900" fill="${fill}" ${FONT_ATTR} textLength="${maxWidth}" lengthAdjust="spacingAndGlyphs"${strokeAttr}>${escapeXml(name)}</text>`;
+  return `<text x="${x}" y="${y}" font-size="${fontSize}" font-weight="900" fill="${fill}" ${FACE_FONT_ATTR} textLength="${maxWidth}" lengthAdjust="spacingAndGlyphs"${strokeAttr}>${escapeXml(name)}</text>`;
 }
 
 function stageBadge(x: number, y: number, stage: string): string {
@@ -203,7 +200,7 @@ function stageBadge(x: number, y: number, stage: string): string {
   const w = stageBadgeWidth(stage);
   return `
     <rect x="${x}" y="${y}" width="${w}" height="24" rx="11" fill="#fafaf9" stroke="#57534e" stroke-width="1.5"/>
-    <text x="${x + w / 2}" y="${y + 17}" text-anchor="middle" font-size="11" font-weight="800" letter-spacing="0.05em" fill="#1f2937" ${FONT_ATTR}>${label}</text>`;
+    <text x="${x + w / 2}" y="${y + 17}" text-anchor="middle" font-size="11" font-weight="800" letter-spacing="0.05em" fill="#1f2937" ${FACE_FONT_ATTR}>${label}</text>`;
 }
 
 const ENERGY_DOT_RADIUS = 13;
@@ -260,14 +257,14 @@ function tcgFooter(
 
   return `
     <rect x="${x1}" y="${y}" width="${x2 - x1}" height="58" rx="8" fill="${barFill}" stroke="${lightText ? "rgba(255,255,255,0.22)" : theme.attackLine}" stroke-width="1"/>
-    <text x="${x1 + 10}" y="${y + 16}" font-size="9" font-weight="700" fill="${mute}" letter-spacing="0.06em" ${FONT_ATTR}>weakness</text>
-    <text x="${x1 + 10}" y="${y + 34}" font-size="14" font-weight="800" fill="${text}" ${FONT_ATTR}>${escapeXml(weakSym)}×2</text>
-    <text x="${x1 + 78}" y="${y + 16}" font-size="9" font-weight="700" fill="${mute}" letter-spacing="0.06em" ${FONT_ATTR}>resistance</text>
-    <text x="${x1 + 78}" y="${y + 34}" font-size="14" font-weight="700" fill="${mute}" ${FONT_ATTR}>—</text>
-    <text x="${mid}" y="${y + 16}" text-anchor="middle" font-size="9" font-weight="700" fill="${mute}" letter-spacing="0.06em" ${FONT_ATTR}>retreat</text>
+    <text x="${x1 + 10}" y="${y + 16}" font-size="9" font-weight="700" fill="${mute}" letter-spacing="0.06em" ${FACE_FONT_ATTR}>weakness</text>
+    <text x="${x1 + 10}" y="${y + 34}" font-size="14" font-weight="800" fill="${text}" ${FACE_FONT_ATTR}>${escapeXml(weakSym)}×2</text>
+    <text x="${x1 + 78}" y="${y + 16}" font-size="9" font-weight="700" fill="${mute}" letter-spacing="0.06em" ${FACE_FONT_ATTR}>resistance</text>
+    <text x="${x1 + 78}" y="${y + 34}" font-size="14" font-weight="700" fill="${mute}" ${FACE_FONT_ATTR}>—</text>
+    <text x="${mid}" y="${y + 16}" text-anchor="middle" font-size="9" font-weight="700" fill="${mute}" letter-spacing="0.06em" ${FACE_FONT_ATTR}>retreat</text>
     ${retreatDots}
-    <text x="${x2 - 10}" y="${y + 16}" text-anchor="end" font-size="9" font-weight="700" fill="${mute}" letter-spacing="0.06em" ${FONT_ATTR}>set</text>
-    <text x="${x2 - 10}" y="${y + 34}" text-anchor="end" font-size="14" font-weight="800" fill="${text}" ${FONT_ATTR}>${setSym} ${card.level}/${CARD_SET_SIZE}</text>`;
+    <text x="${x2 - 10}" y="${y + 16}" text-anchor="end" font-size="9" font-weight="700" fill="${mute}" letter-spacing="0.06em" ${FACE_FONT_ATTR}>set</text>
+    <text x="${x2 - 10}" y="${y + 34}" text-anchor="end" font-size="14" font-weight="800" fill="${text}" ${FACE_FONT_ATTR}>${setSym} ${card.level}/${CARD_SET_SIZE}</text>`;
 }
 
 /** Bottom attack block shared by full-bleed templates */
@@ -290,8 +287,8 @@ function attacksBlock(card: CardData, yStart: number, lightText: boolean): strin
       return `
         <line x1="${pad}" y1="${y - 10}" x2="${FACE_W - pad}" y2="${y - 10}" stroke="${lineStroke}" stroke-width="1.5"/>
         ${dots}
-        <text x="${nameX}" y="${y + 26}" font-size="20" font-weight="800" fill="${textFill}" style="${strokeStyle}" ${FONT_ATTR}>${escapeXml(name)}</text>
-        <text x="${FACE_W - pad}" y="${y + 26}" text-anchor="end" font-size="30" font-weight="900" fill="${textFill}" style="${strokeStyle}" ${FONT_ATTR}>${dmg}</text>`;
+        <text x="${nameX}" y="${y + 26}" font-size="20" font-weight="800" fill="${textFill}" style="${strokeStyle}" ${FACE_FONT_ATTR}>${escapeXml(name)}</text>
+        <text x="${FACE_W - pad}" y="${y + 26}" text-anchor="end" font-size="30" font-weight="900" fill="${textFill}" style="${strokeStyle}" ${FACE_FONT_ATTR}>${dmg}</text>`;
     })
     .join("");
 }
@@ -328,8 +325,8 @@ export function buildTrainerOverlaySvg(card: CardData, variant: CardVariant): st
       return `
         <line x1="${ax}" y1="${y - 6}" x2="${FACE_W - ax}" y2="${y - 6}" stroke="${theme.attackLine}" stroke-width="1.5"/>
         ${dots}
-        <text x="${nameX}" y="${y + 22}" font-size="18" font-weight="800" fill="${theme.attackText}" ${FONT_ATTR}>${escapeXml(name)}</text>
-        <text x="${FACE_W - ax}" y="${y + 22}" text-anchor="end" font-size="26" font-weight="900" fill="${theme.attackText}" ${FONT_ATTR}>${dmg}</text>`;
+        <text x="${nameX}" y="${y + 22}" font-size="18" font-weight="800" fill="${theme.attackText}" ${FACE_FONT_ATTR}>${escapeXml(name)}</text>
+        <text x="${FACE_W - ax}" y="${y + 22}" text-anchor="end" font-size="26" font-weight="900" fill="${theme.attackText}" ${FACE_FONT_ATTR}>${dmg}</text>`;
     })
     .join("");
 
@@ -348,6 +345,7 @@ export function buildTrainerOverlaySvg(card: CardData, variant: CardVariant): st
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${FACE_W}" height="${FACE_H}" viewBox="0 0 ${FACE_W} ${FACE_H}">
   <defs>
+    ${svgEmbeddedFontDefs()}
     <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${theme.bodyLight}"/>
       <stop offset="55%" stop-color="${theme.body}"/>
@@ -365,15 +363,15 @@ export function buildTrainerOverlaySvg(card: CardData, variant: CardVariant): st
   ${nameMarkup}
   ${hpCluster({ rightEdge: contentRight, y: headerY, hp, type: card.type })}
   <rect x="${ax}" y="${metaTop}" width="${aw}" height="30" rx="4" fill="${INFO_GOLD}" stroke="${theme.artFrame}" stroke-width="1"/>
-  <text x="${FACE_W / 2}" y="${metaTop + 20}" text-anchor="middle" font-size="12" font-weight="700" fill="${theme.text}" ${FONT_ATTR}>${escapeXml(infoLine)}</text>
+  <text x="${FACE_W / 2}" y="${metaTop + 20}" text-anchor="middle" font-size="12" font-weight="700" fill="${theme.text}" ${FACE_FONT_ATTR}>${escapeXml(infoLine)}</text>
   <rect x="${ax}" y="${abilityTop}" width="72" height="24" rx="9" fill="${theme.abilityBg}"/>
-  <text x="${ax + 8}" y="${abilityTop + 17}" font-size="12" font-weight="800" fill="${theme.abilityLabel}" ${FONT_ATTR}>Ability</text>
-  <text x="${ax + 80}" y="${abilityTop + 17}" font-size="15" font-weight="700" fill="${theme.text}" ${FONT_ATTR}>${escapeXml(card.passive.slice(0, 32))}</text>
-  <text x="${ax}" y="${abilityDescY}" font-size="11" fill="${theme.textMuted}" ${FONT_ATTR}>Draws power from ${card.totalLikes} likes and ${card.totalDownloads} downloads.</text>
+  <text x="${ax + 8}" y="${abilityTop + 17}" font-size="12" font-weight="800" fill="${theme.abilityLabel}" ${FACE_FONT_ATTR}>Ability</text>
+  <text x="${ax + 80}" y="${abilityTop + 17}" font-size="15" font-weight="700" fill="${theme.text}" ${FACE_FONT_ATTR}>${escapeXml(card.passive.slice(0, 32))}</text>
+  <text x="${ax}" y="${abilityDescY}" font-size="11" fill="${theme.textMuted}" ${FACE_FONT_ATTR}>Draws power from ${card.totalLikes} likes and ${card.totalDownloads} downloads.</text>
   ${attackSvg}
   ${tcgFooter(ax, FACE_W - ax, footY, card, theme, false)}
-  <text x="${ax}" y="${footY + 74}" font-size="11" fill="${theme.textMuted}" ${FONT_ATTR}>${escapeXml(card.evolution.slice(0, 52))}</text>
-  <text x="${FACE_W - ax}" y="${FACE_H - pad - 8}" text-anchor="end" font-size="10" fill="${theme.textMuted}" ${FONT_ATTR}>huggimon</text>
+  <text x="${ax}" y="${footY + 74}" font-size="11" fill="${theme.textMuted}" ${FACE_FONT_ATTR}>${escapeXml(card.evolution.slice(0, 52))}</text>
+  <text x="${FACE_W - ax}" y="${FACE_H - pad - 8}" text-anchor="end" font-size="10" fill="${theme.textMuted}" ${FACE_FONT_ATTR}>huggimon</text>
 </svg>`;
 }
 
@@ -417,11 +415,11 @@ export function buildFullBleedOverlaySvg(
 
   const vmaxTag =
     style === "vmax" || style === "rainbow"
-      ? `<text x="36" y="48" font-size="18" font-weight="900" fill="#fff" style="paint-order:stroke;stroke:rgba(0,0,0,0.75);stroke-width:4px" ${FONT_ATTR}>VMAX</text><text x="108" y="48" font-size="13" font-weight="900" fill="#fbbf24" style="paint-order:stroke;stroke:rgba(0,0,0,0.6);stroke-width:2px" ${FONT_ATTR}>★</text>`
+      ? `<text x="36" y="48" font-size="18" font-weight="900" fill="#fff" style="paint-order:stroke;stroke:rgba(0,0,0,0.75);stroke-width:4px" ${FACE_FONT_ATTR}>VMAX</text><text x="108" y="48" font-size="13" font-weight="900" fill="#fbbf24" style="paint-order:stroke;stroke:rgba(0,0,0,0.6);stroke-width:2px" ${FACE_FONT_ATTR}>★</text>`
       : style === "vstar"
-        ? `<text x="36" y="48" font-size="17" font-weight="900" fill="#fff" style="paint-order:stroke;stroke:rgba(0,0,0,0.75);stroke-width:4px" ${FONT_ATTR}>VSTAR</text>`
+        ? `<text x="36" y="48" font-size="17" font-weight="900" fill="#fff" style="paint-order:stroke;stroke:rgba(0,0,0,0.75);stroke-width:4px" ${FACE_FONT_ATTR}>VSTAR</text>`
         : style === "pokemon-v"
-          ? `<text x="36" y="48" font-size="17" font-weight="900" fill="#fff" style="paint-order:stroke;stroke:rgba(0,0,0,0.75);stroke-width:4px" ${FONT_ATTR}>V</text>`
+          ? `<text x="36" y="48" font-size="17" font-weight="900" fill="#fff" style="paint-order:stroke;stroke:rgba(0,0,0,0.75);stroke-width:4px" ${FACE_FONT_ATTR}>V</text>`
           : "";
 
   const abilityY = style === "rainbow" || style === "secret" ? 608 : 586;
@@ -450,6 +448,7 @@ export function buildFullBleedOverlaySvg(
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${FACE_W}" height="${FACE_H}" viewBox="0 0 ${FACE_W} ${FACE_H}">
   <defs>
+    ${svgEmbeddedFontDefs()}
     ${topGradient}
     ${bottomGradient}
     ${tcgFrame.defs}
@@ -472,14 +471,14 @@ export function buildFullBleedOverlaySvg(
   ${nameMarkup}
   ${hpCluster({ rightEdge: contentRight, y: headerY, hp, type: card.type, lightText })}
   <rect x="36" y="${abilityY - 36}" width="${FACE_W - 72}" height="28" rx="6" fill="${lightText ? "rgba(0,0,0,0.45)" : INFO_GOLD}" opacity="0.92"/>
-  <text x="${FACE_W / 2}" y="${abilityY - 16}" text-anchor="middle" font-size="12" font-weight="700" fill="${lightText ? "#fff" : theme.text}" ${FONT_ATTR}>LV ${card.level} · ${escapeXml(pokemonTypeLabel(card.type))}${badgeSuffix} · ${card.totalFollowers} followers</text>
-  <text x="36" y="${abilityY}" font-size="16" font-weight="800" fill="${lightText ? "#fff" : theme.text}" style="paint-order:stroke;stroke:${lightText ? "rgba(0,0,0,0.75)" : "none"};stroke-width:3px" ${FONT_ATTR}>
+  <text x="${FACE_W / 2}" y="${abilityY - 16}" text-anchor="middle" font-size="12" font-weight="700" fill="${lightText ? "#fff" : theme.text}" ${FACE_FONT_ATTR}>LV ${card.level} · ${escapeXml(pokemonTypeLabel(card.type))}${badgeSuffix} · ${card.totalFollowers} followers</text>
+  <text x="36" y="${abilityY}" font-size="16" font-weight="800" fill="${lightText ? "#fff" : theme.text}" style="paint-order:stroke;stroke:${lightText ? "rgba(0,0,0,0.75)" : "none"};stroke-width:3px" ${FACE_FONT_ATTR}>
     <tspan fill="${abilityAccent}" font-size="14" font-weight="900">Ability</tspan>  ${escapeXml(card.passive)}
   </text>
   ${attacksBlock(card, abilityY + 36, lightText)}
   ${tcgFooter(36, FACE_W - 36, footY, card, theme, lightText)}
-  <text x="36" y="${footY + 74}" font-size="11" fill="${lightText ? "rgba(255,255,255,0.7)" : theme.textMuted}" ${FONT_ATTR}>${escapeXml(card.evolution.slice(0, 48))}</text>
-  <text x="${FACE_W - 36}" y="${footY + 74}" text-anchor="end" font-size="11" fill="${lightText ? "rgba(255,255,255,0.55)" : theme.textMuted}" ${FONT_ATTR}>huggimon</text>
+  <text x="36" y="${footY + 74}" font-size="11" fill="${lightText ? "rgba(255,255,255,0.7)" : theme.textMuted}" ${FACE_FONT_ATTR}>${escapeXml(card.evolution.slice(0, 48))}</text>
+  <text x="${FACE_W - 36}" y="${footY + 74}" text-anchor="end" font-size="11" fill="${lightText ? "rgba(255,255,255,0.55)" : theme.textMuted}" ${FACE_FONT_ATTR}>huggimon</text>
   ${tcgFrame.markup}
 </svg>`;
 }
