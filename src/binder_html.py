@@ -24,10 +24,12 @@ _MINI_BASE_CSS = """
 .hpkm-card{position:relative;width:100%;aspect-ratio:63/88;border-radius:10px;
   padding:4px;box-sizing:border-box;overflow:hidden;color:#1f2937;min-width:0;
   font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
-.hpkm-card.hpk-v-standard,.hpkm-card.hpk-v-holo{background:#cbd5e1;}
-.hpkm-card.hpk-v-ex{background:linear-gradient(135deg,#dfe3e8,#8e959e,#c8ccd4);}
-.hpkm-card.hpk-v-gx{background:linear-gradient(135deg,#f5d76e,#b8860b,#f5d76e);}
-.hpkm-card.hpk-v-shiny{background:linear-gradient(90deg,#ff004d,#ff7a00,#ffe600,#00e05a,#00b3ff,#8a2be2,#ff004d);
+.hpkm-card.hpk-v-common{background:#cbd5e1;}
+.hpkm-card.hpk-v-reverse,.hpkm-card.hpk-v-holo,.hpkm-card.hpk-v-cosmos,
+.hpkm-card.hpk-v-amazing,.hpkm-card.hpk-v-radiant,.hpkm-card.hpk-v-tg{background:#cbd5e1;}
+.hpkm-card.hpk-v-v,.hpkm-card.hpk-v-vfa,.hpkm-card.hpk-v-vaa,.hpkm-card.hpk-v-vmax,
+.hpkm-card.hpk-v-vstar{background:linear-gradient(135deg,#dfe3e8,#8e959e,#c8ccd4);}
+.hpkm-card.hpk-v-vmax-r{background:linear-gradient(90deg,#ff004d,#ff7a00,#ffe600,#00e05a,#00b3ff,#8a2be2,#ff004d);
   background-size:400% 100%;animation:hpkm-rainbow 8s linear infinite;}
 .hpkm-card.hpk-v-gold{background:linear-gradient(120deg,#f5d76e,#b8860b,#ffe9a0,#b8860b,#f5d76e);
   background-size:300% 100%;animation:hpkm-goldshift 10s linear infinite;}
@@ -40,9 +42,9 @@ _MINI_BASE_CSS = """
 .hpkm-name{flex:1;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .hpkm-badge{font-size:8px;font-style:italic;font-weight:800;padding:0 5px;border-radius:999px;
   white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.3);}
-.hpk-v-ex .hpkm-badge{background:linear-gradient(180deg,#f4f5f7,#c7ccd4);color:#1f2937;}
-.hpk-v-gx .hpkm-badge,.hpk-v-gold .hpkm-badge{background:linear-gradient(180deg,#ffe9a0,#d4af37);color:#5b3a00;}
-.hpk-v-shiny .hpkm-badge{background:linear-gradient(90deg,#ff004d,#ff7a00,#ffe600,#00e05a,#00b3ff,#8a2be2);color:#fff;}
+.hpk-v-v .hpkm-badge,.hpk-v-vmax .hpkm-badge,.hpk-v-vstar .hpkm-badge{background:linear-gradient(180deg,#f4f5f7,#c7ccd4);color:#1f2937;}
+.hpk-v-vmax-r .hpkm-badge{background:linear-gradient(90deg,#ff004d,#ff7a00,#ffe600,#00e05a,#00b3ff,#8a2be2);color:#fff;}
+.hpk-v-gold .hpkm-badge{background:linear-gradient(180deg,#ffe9a0,#d4af37);color:#5b3a00;}
 .hpkm-meta{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:10px;}
 .hpkm-level{font-weight:800;}
 .hpkm-stars{color:#d4a017;letter-spacing:1px;}

@@ -20,7 +20,7 @@ Generate your **AI Trainer Card** from your Hugging Face profile. Turn your Hub 
 1. Enter your Hugging Face username.
 2. HuggiMon fetches your public models, datasets, spaces, followers and activity.
 3. It computes your stats, type, rarity, level, attacks and evolution path.
-4. You get an animated Pokemon-TCG-style card — holographic shimmer, sparkles that scale with your rarity, and a 3D tilt effect on the profile page — plus a PNG to download and share.
+4. You get an animated Pokemon-TCG-style card — holographic effects powered by [pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css) (3D tilt, glare, holo by level tier) — plus a PNG to download and share.
 
 ## Follower Binder
 

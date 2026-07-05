@@ -302,43 +302,43 @@ class TestRenderBinderHtml:
         assert "✦" not in out
         assert "–" in out
 
-    def test_level_90_gets_shiny_variant_with_holo_overlay(self):
+    def test_level_85_gets_vmax_rainbow_variant_with_holo_overlay(self):
         binder = BinderPage(
             owner="prof-oak",
             page=1,
             total_pages=1,
             total_followers=1,
-            cards=[_mini(level=90)],
+            cards=[_mini(level=85)],
         )
         out = render_binder_html(binder)
-        assert "hpk-v-shiny" in out
+        assert "hpk-v-vmax-r" in out
         assert "hpkm-holo" in out
 
-    def test_level_10_has_no_holo_overlay(self):
+    def test_level_5_has_no_holo_overlay(self):
         binder = BinderPage(
             owner="prof-oak",
             page=1,
             total_pages=1,
             total_followers=1,
-            cards=[_mini(level=10)],
+            cards=[_mini(level=5)],
         )
         out = render_binder_html(binder)
-        assert "hpk-v-standard" in out
+        assert "hpk-v-common" in out
         # Neither the overlay markup nor the conditional holo CSS chunk.
         assert "hpkm-holo" not in out
         assert "hpkm-sparkles" not in out
 
-    def test_level_50_gets_ex_badge(self):
+    def test_level_55_gets_v_badge(self):
         binder = BinderPage(
             owner="prof-oak",
             page=1,
             total_pages=1,
             total_followers=1,
-            cards=[_mini(level=50)],
+            cards=[_mini(level=55)],
         )
         out = render_binder_html(binder)
-        assert "hpk-v-ex" in out
-        assert '<span class="hpkm-badge">ex</span>' in out
+        assert "hpk-v-v" in out
+        assert '<span class="hpkm-badge">V</span>' in out
 
     def test_display_name_escaped_in_mini_card_markup(self):
         binder = BinderPage(

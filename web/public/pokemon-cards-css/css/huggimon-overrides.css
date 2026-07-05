@@ -1,0 +1,126 @@
+/* HuggiMon — asset paths + profile sizing for vendored pokemon-cards-css */
+
+/* Upstream Card.svelte sets these on :root; without them gradients are invalid. */
+.card.hpk-tcg {
+  --pointer-x: 62%;
+  --pointer-y: 38%;
+  --card-scale: 1;
+  --translate-x: 0px;
+  --translate-y: 0px;
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --background-x: 55%;
+  --background-y: 42%;
+  --pointer-from-center: 0.35;
+  --pointer-from-top: 0.38;
+  --pointer-from-left: 0.62;
+
+  width: min(440px, 94vw);
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.card {
+  --grain: url("/pokemon-cards-css/img/grain.webp");
+  --glitter: url("/pokemon-cards-css/img/glitter.png");
+}
+
+.card[data-rarity="rare holo vmax"] {
+  --foil: url("/pokemon-cards-css/img/vmaxbg.jpg");
+}
+
+.card[data-rarity="rare holo vstar"] {
+  --foil: url("/pokemon-cards-css/img/ancient.png");
+}
+
+.card[data-rarity="rare shiny"] {
+  --foil: url("/pokemon-cards-css/img/illusion.png");
+}
+
+.card[data-rarity="rare rainbow"],
+.card[data-rarity="rare rainbow alt"] {
+  --foil: url("/pokemon-cards-css/img/illusion.png");
+}
+
+.card[data-rarity="rare secret"] {
+  --foil: url("/pokemon-cards-css/img/geometric.png");
+}
+
+.card.hpk-tcg .card__translater {
+  width: 100%;
+}
+
+/* Holo visible at rest — upstream defaults to opacity 0 until pointer move */
+.card.hpk-tcg[data-rarity]:not([data-rarity="common"]) {
+  --card-opacity: 0.72;
+}
+
+.card.hpk-tcg.interacting {
+  --card-opacity: 1;
+}
+
+/* Trainer-layout art window for trainer holo tiers */
+.card.hpk-tcg[data-supertype="trainer"][data-rarity="rare holo"] .card__shine,
+.card.hpk-tcg[data-supertype="trainer"][data-rarity="rare holo"] .card__glare:after,
+.card.hpk-tcg[data-supertype="trainer"][data-rarity="rare holo cosmos"] .card__shine,
+.card.hpk-tcg[data-supertype="trainer"][data-rarity="rare holo cosmos"] .card__glare:after,
+.card.hpk-tcg[data-rarity$="reverse holo"] .card__shine,
+.card.hpk-tcg[data-rarity$="reverse holo"] .card__glare:after,
+.card.hpk-tcg[data-rarity="amazing rare"] .card__shine,
+.card.hpk-tcg[data-rarity="radiant rare"] .card__shine {
+  clip-path: var(--clip-trainer);
+}
+
+/* Pokemon-tier cards on trainer face: standard TCG art window */
+.card.hpk-tcg[data-supertype="pokémon"] .card__shine,
+.card.hpk-tcg[data-supertype="pokémon"] .card__glare:after {
+  clip-path: var(--clip);
+}
+
+/* Full-card holo for rainbow / secret tiers */
+.card.hpk-tcg[data-rarity="rare rainbow"] .card__shine,
+.card.hpk-tcg[data-rarity="rare rainbow"] .card__shine:before,
+.card.hpk-tcg[data-rarity="rare rainbow"] .card__shine:after,
+.card.hpk-tcg[data-rarity="rare rainbow"] .card__glare,
+.card.hpk-tcg[data-rarity="rare rainbow alt"] .card__shine,
+.card.hpk-tcg[data-rarity="rare rainbow alt"] .card__shine:before,
+.card.hpk-tcg[data-rarity="rare rainbow alt"] .card__shine:after,
+.card.hpk-tcg[data-rarity="rare rainbow alt"] .card__glare,
+.card.hpk-tcg[data-rarity="rare secret"] .card__shine,
+.card.hpk-tcg[data-rarity="rare secret"] .card__shine:before,
+.card.hpk-tcg[data-rarity="rare secret"] .card__shine:after,
+.card.hpk-tcg[data-rarity="rare secret"] .card__glare {
+  clip-path: none !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+/* Tiers that tie glare opacity to pointer distance — keep visible at idle */
+.card.hpk-tcg[data-rarity="rare holo vstar"] .card__glare,
+.card.hpk-tcg[data-rarity="rare holo v"] .card__glare,
+.card.hpk-tcg[data-rarity="rare holo vmax"] .card__glare {
+  opacity: calc(var(--card-opacity) * max(var(--pointer-from-center), 0.35)) !important;
+}
+
+/* Gradio gr.HTML does not run <script> — subtle idle shimmer without JS */
+.card.hpk-tcg[data-rarity]:not([data-rarity="common"]) .card__shine {
+  animation: hpk-idle-shimmer 9s ease-in-out infinite;
+}
+
+@keyframes hpk-idle-shimmer {
+  0%, 100% {
+    filter: brightness(0.85) contrast(2.75) saturate(0.85);
+  }
+  50% {
+    filter: brightness(1.05) contrast(2.5) saturate(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card.hpk-tcg .card__translater,
+  .card.hpk-tcg .card__rotator,
+  .card.hpk-tcg .card__shine {
+    animation: none !important;
+    transition: none !important;
+  }
+}

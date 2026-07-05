@@ -9,6 +9,7 @@ from pathlib import Path
 import gradio as gr
 from fastapi import HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -19,6 +20,7 @@ from src.card_html import STYLE_THEMES
 from src.card_renderer import render_png
 from src.hf_fetcher import fetch_hf_profile
 from src.pokecard_html import render_pokecard_html
+from src.tcg_face_renderer import render_tcg_face_png
 from src.profile_page import is_profile_username, render_profile_page
 from src.scoring import build_card
 
@@ -48,6 +50,10 @@ def _share_url(username: str, request: Request | None = None) -> str:
     return f"{_base_url(request)}/api/card/{username}.png"
 
 
+def _face_url(username: str, request: Request | None = None) -> str:
+    return f"{_base_url(request)}/api/card/{username}/face.png"
+
+
 def _generate_card(username: str, style: str) -> tuple:
     username = username.strip().lstrip("@")
     if not username:
@@ -60,8 +66,8 @@ def _generate_card(username: str, style: str) -> tuple:
 
     card = build_card(profile)
     share = _share_url(username)
-    # The HTML preview is the animated pokecard; `style` only affects the PNG.
-    html = render_pokecard_html(card)
+    face = _face_url(username)
+    html = render_pokecard_html(card, face_url=face)
 
     png_bytes = render_png(card, style=style)
     img = Image.open(BytesIO(png_bytes))
@@ -214,6 +220,21 @@ with gr.Blocks(title="HuggiMon") as _demo:
 # ---------------------------------------------------------------------------
 
 app = gr.Server(title="HuggiMon")
+
+_static_dir = Path(__file__).parent / "static"
+if _static_dir.is_dir():
+    app.mount("/static", StaticFiles(directory=_static_dir), name="static")
+
+
+@app.get("/api/card/{username}/face.png")
+def api_card_face_png(username: str):
+    try:
+        profile = fetch_hf_profile(username)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    card = build_card(profile)
+    png_bytes = render_tcg_face_png(card)
+    return Response(content=png_bytes, media_type="image/png", headers={"Cache-Control": "public, max-age=300"})
 
 
 @app.get("/api/card/{username}.png")

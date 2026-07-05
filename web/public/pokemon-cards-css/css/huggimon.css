@@ -1,0 +1,53 @@
+/**
+ * HuggiMon — layout hooks on top of unmodified pokemon-cards-css.
+ */
+
+.card.hpk-trainer-face,
+.card.hpk-full-bleed {
+  width: min(440px, 94vw);
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.card.hpk-trainer-face .card__translater,
+.card.hpk-full-bleed .card__translater {
+  width: 100%;
+}
+
+/* Trainer template: holo clipped to art window (--clip-trainer) */
+.card.hpk-trainer-face .card__shine,
+.card.hpk-trainer-face .card__shine::before,
+.card.hpk-trainer-face .card__shine::after {
+  clip-path: var(--clip-trainer);
+}
+
+.card.hpk-trainer-face[data-rarity$="reverse holo"] .card__glare::after,
+.card.hpk-trainer-face[data-rarity="rare holo"] .card__glare::after,
+.card.hpk-trainer-face[data-rarity="rare holo cosmos"] .card__glare::after,
+.card.hpk-trainer-face[data-subtypes^="stage"] .card__shine,
+.card.hpk-trainer-face[data-subtypes^="stage"] .card__glare::after {
+  clip-path: var(--clip-stage);
+}
+
+.card.hpk-trainer-face[data-rarity="radiant rare"] .card__shine {
+  clip-path: var(--clip-borders);
+}
+
+/* Full-bleed template: upstream pokemon-cards-css handles holo (no clip override) */
+.card.hpk-full-bleed .card__shine,
+.card.hpk-full-bleed .card__shine::before,
+.card.hpk-full-bleed .card__shine::after,
+.card.hpk-full-bleed .card__glare {
+  clip-path: none !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card.hpk-trainer-face .card__translater,
+  .card.hpk-trainer-face .card__rotator,
+  .card.hpk-full-bleed .card__translater,
+  .card.hpk-full-bleed .card__rotator {
+    transition: none !important;
+  }
+}

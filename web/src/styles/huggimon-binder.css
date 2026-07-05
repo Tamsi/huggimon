@@ -1,0 +1,476 @@
+/* ═══════════════════════════════════════════════════════════════
+   HuggiMon 3D Binder — cover · page flip · 9-pocket sleeves
+   ═══════════════════════════════════════════════════════════════ */
+
+.tcg-binder-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 0 32px;
+  perspective: 2400px;
+}
+
+.tcg-binder {
+  position: relative;
+  width: min(440px, 94vw);
+  height: min(580px, 72vh);
+  transform-style: preserve-3d;
+}
+
+/* ── Cover ── */
+.tcg-binder__cover {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 1.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: none;
+}
+
+.tcg-binder--open .tcg-binder__cover {
+  transform: rotateY(-168deg);
+  pointer-events: none;
+}
+
+.tcg-binder__cover-face,
+.tcg-binder__cover-inside {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 6px 18px 18px 6px;
+}
+
+.tcg-binder__cover-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(255, 255, 255, 0.18), transparent 50%),
+    linear-gradient(155deg, #3b4cca 0%, #1b2a6d 40%, #cc0000 75%, #8b0000 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -3px 12px rgba(0, 0, 0, 0.35),
+    4px 8px 32px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+.tcg-binder__cover-inside {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #f5efe3, #e8dfd0);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.08);
+}
+
+.tcg-binder__cover-frame {
+  position: absolute;
+  inset: 14px;
+  border: 2px solid rgba(212, 160, 23, 0.55);
+  border-radius: 4px 14px 14px 4px;
+  box-shadow:
+    inset 0 0 0 1px rgba(212, 160, 23, 0.25),
+    inset 0 0 40px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+.tcg-binder__cover-frame::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 2px 10px 10px 2px;
+}
+
+.tcg-binder__cover-medallion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fff4a8, #ffcb05 45%, #e6a800 100%);
+  color: #1b2a6d;
+  font-size: 32px;
+  font-weight: 900;
+  box-shadow:
+    0 4px 0 #b8860b,
+    0 8px 20px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+
+.tcg-binder__cover-brand {
+  margin: 0;
+  font-size: clamp(2rem, 8vw, 2.75rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  background: linear-gradient(180deg, #fef3c7 0%, #fbbf24 40%, #d97706 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  text-transform: uppercase;
+}
+
+.tcg-binder__cover-tagline {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.tcg-binder__cover-user {
+  margin: 16px 0 0;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.tcg-binder__cover-cta {
+  position: absolute;
+  bottom: 28px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  animation: tcg-cta-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes tcg-cta-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* ── Body (inside) ── */
+.tcg-binder__body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  border-radius: 6px 18px 18px 6px;
+  transform-style: preserve-3d;
+  box-shadow: var(--hk-shadow-book);
+  opacity: 0;
+  transition: opacity 0.4s ease 0.5s;
+}
+
+.tcg-binder--open .tcg-binder__body {
+  opacity: 1;
+}
+
+.tcg-binder__spine {
+  width: 36px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #5c0a1a, #881337 50%, #5c0a1a);
+  border-radius: 6px 0 0 6px;
+  box-shadow: inset -4px 0 10px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.tcg-binder__spine-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.tcg-binder__rings {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.tcg-binder__ring {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--hk-ring);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.tcg-binder__stack {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  transform-style: preserve-3d;
+}
+
+/* Sheet depth */
+.tcg-binder__sheet--under,
+.tcg-binder__sheet--under-2 {
+  position: absolute;
+  inset: 8px 8px 8px 4px;
+  border-radius: 0 12px 12px 0;
+  background: #ebe4d8;
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tcg-binder__sheet--under {
+  transform: translateZ(-2px) translateY(2px);
+}
+
+.tcg-binder__sheet--under-2 {
+  transform: translateZ(-4px) translateY(4px);
+}
+
+/* Active flipping page */
+.tcg-binder__sheet--active {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 0.65s cubic-bezier(0.4, 0, 0.15, 1);
+}
+
+.tcg-binder__sheet--flip-next {
+  transform: rotateY(-180deg);
+}
+
+.tcg-page {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 0 16px 16px 0;
+  background:
+    radial-gradient(ellipse 70% 40% at 25% 0%, rgba(255, 255, 255, 0.65), transparent),
+    linear-gradient(168deg, #faf6ee 0%, #ebe4d8 100%);
+  box-shadow: inset 0 0 40px rgba(139, 119, 90, 0.08);
+  padding: 16px 14px 14px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tcg-page--rear {
+  transform: rotateY(180deg);
+  background: linear-gradient(168deg, #e8dfd0, #ddd5c8);
+}
+
+.tcg-page__rear-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 12px,
+    rgba(0, 0, 0, 0.03) 12px,
+    rgba(0, 0, 0, 0.03) 13px
+  );
+}
+
+.tcg-page__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.tcg-page__num {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--hk-ink-faint);
+}
+
+.tcg-page__label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--hk-red);
+}
+
+/* ── 9-pocket grid ── */
+.tcg-page__grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: clamp(5px, 1.5vw, 9px);
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.tcg-pocket {
+  position: relative;
+  min-height: 0;
+}
+
+.tcg-pocket__plastic {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.tcg-pocket__well {
+  position: absolute;
+  inset: 2px;
+  border-radius: 4px;
+  background: #c4b8a4;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+.tcg-pocket__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tcg-pocket__back {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 50% 42%, #1a3460 0%, #1a3460 26%, transparent 27%),
+    repeating-conic-gradient(from -4deg at 50% 50%, #1e4a8a 0deg 10deg, #163a72 10deg 20deg);
+  border: 2px solid #c9a020;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.tcg-pocket__shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    transparent 40%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    inset 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.tcg-pocket--filled .tcg-pocket__well {
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.15),
+    0 0 0 2px rgba(185, 28, 60, 0.2);
+}
+
+.tcg-pocket--filled {
+  transform: translateY(-2px);
+  z-index: 2;
+}
+
+/* ── Nav controls ── */
+.tcg-binder__controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tcg-binder__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 22px;
+  font-weight: 300;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.tcg-binder__nav:hover:not(:disabled) {
+  background: rgba(185, 28, 60, 0.35);
+  border-color: rgba(185, 28, 60, 0.5);
+  transform: scale(1.05);
+}
+
+.tcg-binder__nav:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.tcg-binder__dots {
+  display: flex;
+  gap: 8px;
+}
+
+.tcg-binder__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.tcg-binder__dot--on {
+  background: var(--hk-red-bright);
+  transform: scale(1.25);
+}
+
+/* Trainer layout */
+.hk-trainer__layout {
+  display: grid;
+  gap: 28px;
+}
+
+@media (min-width: 960px) {
+  .hk-trainer__layout {
+    grid-template-columns: 1fr 260px;
+    align-items: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tcg-binder__cover {
+    transition-duration: 0.3s;
+  }
+
+  .tcg-binder__sheet--active {
+    transition: none;
+  }
+
+  .tcg-binder__cover-cta {
+    animation: none;
+  }
+}

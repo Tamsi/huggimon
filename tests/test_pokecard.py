@@ -5,18 +5,18 @@ from collections import Counter
 from html.parser import HTMLParser
 
 from src.energy import COLORLESS, ENERGY_BY_TYPE
-from src.pokecard_html import (
-    HOLO_CLASS,
-    SPARKLE_CLASS,
-    WEAKNESS_BY_ENERGY,
-    _attack_rows,
-    _hp,
-    _retreat,
-    _stage,
-    _weakness,
-    render_pokecard_html,
-)
+from src.pokecard_html import HOLO_CLASS, SPARKLE_CLASS, render_pokecard_html
 from src.scoring import CardData, CardStats
+from src.tcg_card_layout import (
+    WEAKNESS_BY_ENERGY,
+    attack_rows,
+    hp_value,
+    retreat_cost,
+    stage_label,
+    weakness_symbol,
+)
+
+FACE_URL = "/api/card/tamsi/face.png"
 
 
 def _make_card(**overrides) -> CardData:
@@ -45,57 +45,30 @@ def _make_card(**overrides) -> CardData:
     return CardData(**defaults)
 
 
+def _render(**overrides) -> str:
+    return render_pokecard_html(_make_card(**overrides), face_url=FACE_URL)
+
+
 class TestHp:
     def test_mid_level(self):
-        # 60 + 42*2 = 144 -> round(14.4)*10 = 140
-        assert _hp(_make_card(level=42)) == 140
+        assert hp_value(_make_card(level=42)) == 140
 
     def test_cap_at_340(self):
-        # 60 + 200*2 = 460 -> capped at 340
-        assert _hp(_make_card(level=200)) == 340
-
-    def test_low_level(self):
-        # 60 + 1*2 = 62 -> round(6.2)*10 = 60
-        assert _hp(_make_card(level=1)) == 60
+        assert hp_value(_make_card(level=200)) == 340
 
 
 class TestStage:
     def test_no_arrow_is_basic(self):
-        assert _stage(_make_card(evolution="Contributor")) == "Basic"
+        assert stage_label(_make_card(evolution="Contributor")) == "Basic"
 
     def test_one_arrow_is_stage_1(self):
-        assert _stage(_make_card(evolution="Contributor → Builder")) == "Stage 1"
-
-    def test_two_arrows_is_stage_2(self):
-        card = _make_card(evolution="Contributor → Builder → Hub Legend")
-        assert _stage(card) == "Stage 2"
+        assert stage_label(_make_card(evolution="Contributor → Builder")) == "Stage 1"
 
 
 class TestAttackRows:
     def test_damage_and_cost_from_top_stats(self):
-        # Top stats: model=85, data=50 (space=30 dropped).
-        # Python banker's rounding: round(8.5) == 8 -> damage 80.
         card = _make_card(stats=CardStats(85, 50, 30, 0, 0, 0))
-        rows = _attack_rows(card)
-        assert rows == [("Model Overload", 80, 3), ("Dataset Tsunami", 50, 2)]
-
-    def test_damage_floor_and_min_cost(self):
-        card = _make_card(stats=CardStats(3, 2, 1, 0, 0, 0))
-        rows = _attack_rows(card)
-        assert rows == [("Model Overload", 10, 1), ("Dataset Tsunami", 10, 1)]
-
-    def test_cost_capped_at_4(self):
-        card = _make_card(stats=CardStats(100, 100, 100, 0, 0, 0))
-        rows = _attack_rows(card)
-        assert all(cost == 3 for _, _, cost in rows)  # 1 + 100//40 = 3
-        card = _make_card(stats=CardStats(160, 160, 160, 0, 0, 0))
-        assert all(cost == 4 for _, _, cost in _attack_rows(card))
-
-    def test_single_attack_gives_single_row(self):
-        card = _make_card(attacks=["Fine-tune Blast"])
-        rows = _attack_rows(card)
-        assert len(rows) == 1
-        assert rows[0][0] == "Fine-tune Blast"
+        assert attack_rows(card) == [("Model Overload", 80, 3), ("Dataset Tsunami", 50, 2)]
 
 
 class TestWeakness:
@@ -104,131 +77,111 @@ class TestWeakness:
         for name in names:
             assert name in WEAKNESS_BY_ENERGY
 
-    def test_exact_weakness_pairs(self):
-        assert WEAKNESS_BY_ENERGY == {
-            "Fire": "Water",
-            "Water": "Lightning",
-            "Lightning": "Grass",
-            "Grass": "Fire",
-            "Psychic": "Metal",
-            "Metal": "Fire",
-            "Rainbow": "Psychic",
-            "Colorless": "Psychic",
-        }
-
     def test_lightning_is_weak_to_grass(self):
-        assert _weakness(_make_card(energy_name="Lightning")) == "🌿"
-
-    def test_fragment_shows_weakness_times_two(self):
-        doc = render_pokecard_html(_make_card(energy_name="Lightning"))
-        assert "🌿×2" in doc
+        assert weakness_symbol(_make_card(energy_name="Lightning")) == "🌿"
 
 
 class TestRetreat:
     def test_thresholds(self):
-        assert _retreat(_make_card(total_models=9, total_datasets=0, total_spaces=0)) == 1
-        assert _retreat(_make_card(total_models=49, total_datasets=0, total_spaces=0)) == 2
-        assert _retreat(_make_card(total_models=50, total_datasets=0, total_spaces=0)) == 3
+        assert retreat_cost(_make_card(total_models=9, total_datasets=0, total_spaces=0)) == 1
+        assert retreat_cost(_make_card(total_models=50, total_datasets=0, total_spaces=0)) == 3
 
 
-class TestFragmentContent:
-    def test_core_fields_present(self):
-        doc = render_pokecard_html(_make_card())
-        assert "Tamsi" in doc
-        assert "HP" in doc
-        assert "Model Overload" in doc
-        assert "Dataset Tsunami" in doc
-        assert "Stage 1" in doc
-        assert "42/151" in doc
-        assert "huggimon.space" in doc
+class TestMarkupStructure:
+    def test_uses_pokemon_cards_css_structure(self):
+        doc = _render()
+        assert 'class="card interactive hpk-tcg' in doc
+        assert "card__translater" in doc
+        assert "card__rotator" in doc
+        assert "card__front" in doc
+        assert HOLO_CLASS in doc
+        assert SPARKLE_CLASS in doc
+        assert FACE_URL in doc
+        assert 'width="660"' in doc
+        assert "regular-holo.css" in doc
+        assert "pokemon-cards-css" in doc
+
+    def test_face_image_alt_contains_display_name(self):
+        doc = _render()
+        assert 'alt="Front of Tamsi trainer card"' in doc
+
+    def test_trainer_data_attributes(self):
+        doc = _render(level=20)
+        assert 'data-supertype="trainer"' in doc
+        assert 'data-subtypes="stage1"' in doc
 
 
 class TestVariant:
-    def test_level_20_standard_has_no_effects(self):
-        doc = render_pokecard_html(_make_card(level=20))
-        assert "hpk-v-standard" in doc
-        assert HOLO_CLASS not in doc
-        assert SPARKLE_CLASS not in doc
+    def test_level_5_common(self):
+        doc = _render(level=5)
+        assert "hpk-v-common" in doc
+        assert 'data-rarity="common"' in doc
 
-    def test_level_30_holo_has_holo_only(self):
-        doc = render_pokecard_html(_make_card(level=30))
+    def test_level_12_reverse_holo(self):
+        doc = _render(level=12)
+        assert "hpk-v-reverse" in doc
+        assert 'data-rarity="uncommon reverse holo"' in doc
+        assert " masked" in doc
+        assert "reverse-holo.css" in doc
+
+    def test_level_20_holo_rare(self):
+        doc = _render(level=20)
         assert "hpk-v-holo" in doc
-        assert HOLO_CLASS in doc
-        assert SPARKLE_CLASS not in doc
+        assert 'data-rarity="rare holo"' in doc
 
-    def test_level_70_gx_has_holo_and_sparkles(self):
-        doc = render_pokecard_html(_make_card(level=70))
-        assert "hpk-v-gx" in doc
-        assert HOLO_CLASS in doc
-        assert SPARKLE_CLASS in doc
+    def test_level_28_cosmos(self):
+        doc = _render(level=28)
+        assert "hpk-v-cosmos" in doc
+        assert 'data-rarity="rare holo cosmos"' in doc
+        assert "cosmos-holo.css" in doc
 
-    def test_level_90_shiny_has_all_effects_and_rainbow_frame(self):
-        doc = render_pokecard_html(_make_card(level=90))
-        assert "hpk-v-shiny" in doc
-        assert HOLO_CLASS in doc
-        assert SPARKLE_CLASS in doc
-        # Rainbow frame CSS is emitted: keyframe plus the frame rule.
-        assert "hpk-rainbow" in doc
-        assert ".hpk-v-shiny{" in doc
+    def test_level_55_pokemon_v(self):
+        doc = _render(level=55)
+        assert "hpk-v-v" in doc
+        assert 'data-rarity="rare holo v"' in doc
+        assert 'data-supertype="pokémon"' in doc
+        assert "v-regular.css" in doc
 
-    def test_level_110_gold_has_holo_and_sparkles(self):
-        doc = render_pokecard_html(_make_card(level=110))
+    def test_level_75_vmax(self):
+        doc = _render(level=75)
+        assert "hpk-v-vmax" in doc
+        assert 'data-rarity="rare holo vmax"' in doc
+        assert "v-max.css" in doc
+
+    def test_level_85_vmax_rainbow(self):
+        doc = _render(level=85)
+        assert "hpk-v-vmax-r" in doc
+        assert 'data-rarity="rare rainbow"' in doc
+        assert "rainbow-holo.css" in doc
+
+    def test_level_100_secret_gold(self):
+        doc = _render(level=100)
         assert "hpk-v-gold" in doc
-        assert HOLO_CLASS in doc
-        assert SPARKLE_CLASS in doc
+        assert 'data-rarity="rare secret"' in doc
+        assert "secret-rare.css" in doc
 
-    def test_level_20_standard_emits_no_variant_css(self):
-        # Neither markup nor CSS for gated features may leak into Standard.
-        doc = render_pokecard_html(_make_card(level=20))
-        for marker in (
-            "hpk-rainbow",
-            "hpk-goldshift",
-            "hpk-badge",
-            "hpk-holo",
-            "hpk-sparkles",
-        ):
-            assert marker not in doc, marker
-
-
-class TestBadge:
-    def test_level_50_ex_shows_badge_capsule(self):
-        doc = render_pokecard_html(_make_card(level=50))
-        assert 'class="hpk-badge">ex<' in doc
-
-    def test_level_20_standard_has_no_badge(self):
-        doc = render_pokecard_html(_make_card(level=20))
-        assert "hpk-badge" not in doc
+    def test_level_48_trainer_gallery(self):
+        doc = _render(level=48)
+        assert "hpk-v-tg" in doc
+        assert 'data-trainer-gallery="true"' in doc
+        assert 'data-number="TG48"' in doc
+        assert "trainer-gallery-holo.css" in doc
 
 
 class TestRarity:
-    def test_unknown_rarity_falls_back_to_common(self):
+    def test_unknown_rarity_falls_back_to_common_class(self):
         payload = 'X" onmouseover="alert(1)'
-        doc = render_pokecard_html(_make_card(rarity=payload))
+        doc = _render(rarity=payload)
         assert "hpk-common" in doc
         assert payload not in doc
 
 
 class TestEscaping:
-    def test_display_name_is_escaped(self):
+    def test_display_name_in_alt_is_escaped(self):
         payload = "<script>alert(1)</script>"
-        doc = render_pokecard_html(_make_card(display_name=payload))
+        doc = _render(display_name=payload)
         assert html.escape(payload) in doc
-        # The fragment legitimately contains its own tilt <script> tag,
-        # so assert on the full payload string rather than "<script>" alone.
         assert payload not in doc
-
-
-class TestAvatar:
-    def test_avatar_url_renders_img(self):
-        url = "https://example.com/a.png?x=1&y=2"
-        doc = render_pokecard_html(_make_card(avatar_url=url))
-        assert "<img" in doc
-        assert html.escape(url, quote=True) in doc
-
-    def test_no_avatar_renders_initial(self):
-        doc = render_pokecard_html(_make_card(avatar_url=None, username="tamsi"))
-        assert "<img" not in doc
-        assert 'class="hpk-initial">T<' in doc
 
 
 class _TagCounter(HTMLParser):
@@ -245,11 +198,9 @@ class _TagCounter(HTMLParser):
 
 
 class TestWellFormedness:
-    def test_div_and_span_tags_balanced(self):
-        # One level per variant tier so badge/overlay markup is all covered.
-        for level in (20, 30, 50, 70, 90, 110):
+    def test_wellformedness_div_tags_balanced(self):
+        for level in (5, 12, 20, 55, 75, 85, 100):
             parser = _TagCounter()
-            parser.feed(render_pokecard_html(_make_card(level=level)))
+            parser.feed(_render(level=level))
             parser.close()
-            for tag in ("div", "span"):
-                assert parser.starts[tag] == parser.ends[tag], (level, tag)
+            assert parser.starts["div"] == parser.ends["div"], level

@@ -5,6 +5,7 @@ import html
 from src.binder_fetcher import BinderPage
 from src.binder_html import render_binder_html
 from src.binder_interactive import render_binder_interactive
+from src.pokemon_card_css import render_stylesheet_links
 from src.pokecard_html import render_pokecard_html
 from src.scoring import CardData
 
@@ -50,7 +51,11 @@ def render_profile_page(
     """Return a complete HTML document for a public trainer profile."""
     # `style` is kept for URL compatibility (?style=) but the animated pokecard
     # has a single look, so it is silently ignored here.
-    card_fragment = render_pokecard_html(card)
+    card_fragment = render_pokecard_html(
+        card,
+        face_url=f"{app_url}/api/card/{card.username}/face.png",
+        include_stylesheets=False,
+    )
     binder_fragment = render_binder_html(binder)
 
     display_name = html.escape(card.display_name)
@@ -88,6 +93,7 @@ def render_profile_page(
   <meta property="og:image" content="{card_png_escaped}">
   <meta property="og:url" content="{profile_url_escaped}">
   <meta name="twitter:card" content="summary_large_image">
+  {render_stylesheet_links()}
   <style>
     * {{ box-sizing: border-box; }}
     body {{

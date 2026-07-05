@@ -9,37 +9,51 @@ class TestVariantForLevel:
     @pytest.mark.parametrize(
         ("level", "expected_name"),
         [
-            (24, "Standard"),
-            (25, "Holo"),
-            (44, "Holo"),
-            (45, "ex"),
-            (64, "ex"),
-            (65, "GX"),
-            (84, "GX"),
-            (85, "Shiny"),
-            (104, "Shiny"),
-            (105, "Gold"),
-            (300, "Gold"),
+            (5, "Common"),
+            (9, "Common"),
+            (10, "Reverse Holo"),
+            (16, "Reverse Holo"),
+            (17, "Holo Rare"),
+            (24, "Cosmos Holo"),
+            (31, "Amazing Rare"),
+            (38, "Radiant"),
+            (45, "Trainer Gallery"),
+            (52, "Pokemon V"),
+            (59, "V Full Art"),
+            (66, "V Alt Art"),
+            (73, "VMax"),
+            (80, "VMax Rainbow"),
+            (87, "VStar"),
+            (94, "Secret Gold"),
+            (300, "Secret Gold"),
         ],
     )
     def test_tier_boundaries(self, level, expected_name):
         assert variant_for_level(level).name == expected_name
 
     @pytest.mark.parametrize("level", [-100, -1, 0])
-    def test_non_positive_levels_are_standard(self, level):
-        assert variant_for_level(level).name == "Standard"
+    def test_non_positive_levels_are_common(self, level):
+        assert variant_for_level(level).name == "Common"
 
 
 class TestVariantProperties:
     @pytest.mark.parametrize(
         ("name", "holo", "sparkles", "rainbow_frame", "gold_frame"),
         [
-            ("Standard", False, False, False, False),
-            ("Holo", True, False, False, False),
-            ("ex", True, False, False, False),
-            ("GX", True, True, False, False),
-            ("Shiny", True, True, True, False),
-            ("Gold", True, True, False, True),
+            ("Common", False, False, False, False),
+            ("Reverse Holo", True, False, False, False),
+            ("Holo Rare", True, False, False, False),
+            ("Cosmos Holo", True, False, False, False),
+            ("Amazing Rare", True, True, False, False),
+            ("Radiant", True, True, False, False),
+            ("Trainer Gallery", True, False, False, False),
+            ("Pokemon V", True, False, False, False),
+            ("V Full Art", True, True, False, False),
+            ("V Alt Art", True, True, False, False),
+            ("VMax", True, True, False, False),
+            ("VMax Rainbow", True, True, True, False),
+            ("VStar", True, True, False, False),
+            ("Secret Gold", True, True, False, True),
         ],
     )
     def test_flags_match_table(self, name, holo, sparkles, rainbow_frame, gold_frame):
@@ -52,43 +66,37 @@ class TestVariantProperties:
         )
 
     @pytest.mark.parametrize(
-        ("name", "css_class"),
+        ("name", "data_rarity"),
         [
-            ("Standard", "hpk-v-standard"),
-            ("Holo", "hpk-v-holo"),
-            ("ex", "hpk-v-ex"),
-            ("GX", "hpk-v-gx"),
-            ("Shiny", "hpk-v-shiny"),
-            ("Gold", "hpk-v-gold"),
+            ("Common", "common"),
+            ("Reverse Holo", "uncommon reverse holo"),
+            ("Holo Rare", "rare holo"),
+            ("Cosmos Holo", "rare holo cosmos"),
+            ("Amazing Rare", "amazing rare"),
+            ("Radiant", "radiant rare"),
+            ("Trainer Gallery", "rare holo"),
+            ("Pokemon V", "rare holo v"),
+            ("V Full Art", "rare ultra"),
+            ("V Alt Art", "rare ultra"),
+            ("VMax", "rare holo vmax"),
+            ("VMax Rainbow", "rare rainbow"),
+            ("VStar", "rare holo vstar"),
+            ("Secret Gold", "rare secret"),
         ],
     )
-    def test_css_classes(self, name, css_class):
+    def test_data_rarity_wire_values(self, name, data_rarity):
         variant = next(v for v in VARIANTS if v.name == name)
-        assert variant.css_class == css_class
-
-    @pytest.mark.parametrize(
-        ("name", "badge"),
-        [
-            ("Standard", ""),
-            ("Holo", ""),
-            ("ex", "ex"),
-            ("GX", "GX"),
-            ("Shiny", "✦ shiny"),
-            ("Gold", "★ gold"),
-        ],
-    )
-    def test_badges(self, name, badge):
-        variant = next(v for v in VARIANTS if v.name == name)
-        assert variant.badge == badge
+        assert variant.data_rarity == data_rarity
 
 
 class TestVariantsConstant:
-    def test_six_variants_in_ascending_tier_order(self):
-        assert len(VARIANTS) == 6
-        assert [v.name for v in VARIANTS] == ["Standard", "Holo", "ex", "GX", "Shiny", "Gold"]
+    def test_fourteen_variants_in_ascending_tier_order(self):
+        assert len(VARIANTS) == 14
+        assert VARIANTS[0].name == "Common"
+        assert VARIANTS[-1].name == "Secret Gold"
 
     def test_matches_variant_for_level(self):
-        representative_levels = [0, 25, 45, 65, 85, 105]
+        representative_levels = [0, 10, 17, 24, 31, 38, 45, 52, 59, 66, 73, 80, 87, 94]
         assert [variant_for_level(lvl) for lvl in representative_levels] == list(VARIANTS)
 
     def test_entries_are_variant_instances(self):
