@@ -44,6 +44,18 @@ export function ProfileHero({ card, variant, faceUrl, faceInline, profileUrl }: 
           profileUrl={profileUrl}
           faceUrl={faceUrl}
         />
+
+        <a
+          href={`https://huggingface.co/${encodeURIComponent(card.username)}`}
+          target="_blank"
+          rel="noreferrer"
+          className="profile-hero__hf-link"
+        >
+          Visit on Hugging Face
+          <span className="profile-hero__hf-link-arrow" aria-hidden>
+            ↗
+          </span>
+        </a>
       </div>
     </section>
   );

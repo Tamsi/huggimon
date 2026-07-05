@@ -94,6 +94,27 @@
   color: var(--hk-blue-deep);
 }
 
+.profile-hero__hf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hk-ink-muted) !important;
+  text-decoration: none !important;
+  transition: color 0.15s ease;
+}
+
+.profile-hero__hf-link:hover {
+  color: var(--hk-blue) !important;
+}
+
+.profile-hero__hf-link-arrow {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
 /* Neutral-type holo glow (Normal, Flying) */
 .card.colorless {
   --card-glow: hsl(220, 10%, 72%);

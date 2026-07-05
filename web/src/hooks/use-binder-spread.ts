@@ -1,7 +1,7 @@
 "use client";
 
 import { easings, useSpring } from "@react-spring/web";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { BinderPageData } from "@/lib/binder-fetcher";
 
 const FLIP_CONFIG = { duration: 880, easing: easings.easeInOutCubic };
@@ -26,9 +26,11 @@ export function useBinderSpread({ username, initialPage, opened }: Options) {
 
   const [spread, setSpread] = useState(0);
   const [turning, setTurning] = useState<TurnDir | null>(null);
+  const [frozenSpread, setFrozenSpread] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [, bump] = useReducer((c: number) => c + 1, 0);
   const lockRef = useRef(false);
+  const pendingAnimRef = useRef<TurnDir | null>(null);
+  const frozenSpreadRef = useRef<number | null>(null);
 
   const totalPages = initialPage.totalPages;
   const maxSpread = Math.floor(totalPages / 2);
@@ -60,7 +62,6 @@ export function useBinderSpread({ username, initialPage, opened }: Options) {
     [username, totalPages],
   );
 
-  // Prefetch pages of adjacent spreads so turns start instantly.
   useEffect(() => {
     if (!opened) return;
     const neighbors = [
@@ -70,13 +71,57 @@ export function useBinderSpread({ username, initialPage, opened }: Options) {
       2 * spread - 3,
     ];
     let cancelled = false;
-    void Promise.all(neighbors.map(fetchPage)).then(() => {
-      if (!cancelled) bump();
-    });
+    void Promise.all(neighbors.map(fetchPage));
     return () => {
       cancelled = true;
     };
   }, [opened, spread, fetchPage]);
+
+  const settle = useCallback(
+    (target: number) => {
+      setSpread(target);
+      flipApi.start({ rotateY: 0, immediate: true });
+      setTurning(null);
+      setFrozenSpread(null);
+      frozenSpreadRef.current = null;
+      lockRef.current = false;
+      pendingAnimRef.current = null;
+    },
+    [flipApi],
+  );
+
+  // Start the spring only after the turning sheet is in the DOM (avoids mount jumps).
+  useEffect(() => {
+    const dir = pendingAnimRef.current;
+    if (!dir || turning !== dir) return;
+
+    if (dir === "next") {
+      flipApi.start({ rotateY: 0, immediate: true });
+      flipApi.start({
+        rotateY: -180,
+        config: FLIP_CONFIG,
+        onRest: ({ finished }) => {
+          if (!finished || pendingAnimRef.current !== "next") return;
+          const base = frozenSpreadRef.current;
+          if (base === null) return;
+          settle(base + 1);
+        },
+      });
+      return;
+    }
+
+    flipApi.start({ rotateY: -180, immediate: true });
+    flipApi.start({
+      rotateY: 0,
+      config: FLIP_CONFIG,
+      onRest: ({ finished }) => {
+        if (!finished || pendingAnimRef.current !== "prev") return;
+        const base = frozenSpreadRef.current;
+        if (base === null) return;
+        settle(base - 1);
+      },
+    });
+  }, [turning, flipApi, settle]);
 
   const turn = useCallback(
     async (dir: TurnDir) => {
@@ -86,60 +131,43 @@ export function useBinderSpread({ username, initialPage, opened }: Options) {
 
       lockRef.current = true;
       setLoading(true);
+
       const needed =
         dir === "next"
           ? [2 * spread + 1, 2 * spread + 2]
           : [2 * spread - 2, 2 * spread - 3];
       await Promise.all(needed.map(fetchPage));
+
       setLoading(false);
-      bump();
-
+      frozenSpreadRef.current = spread;
+      setFrozenSpread(spread);
+      pendingAnimRef.current = dir;
       setTurning(dir);
-      const settle = () => {
-        setSpread(target);
-        setTurning(null);
-        flipApi.set({ rotateY: 0 });
-        lockRef.current = false;
-      };
-
-      if (dir === "next") {
-        flipApi.set({ rotateY: 0 });
-        flipApi.start({
-          rotateY: -180,
-          config: FLIP_CONFIG,
-          onRest: ({ finished }) => {
-            if (finished) settle();
-          },
-        });
-      } else {
-        flipApi.set({ rotateY: -180 });
-        requestAnimationFrame(() => {
-          flipApi.start({
-            rotateY: 0,
-            config: FLIP_CONFIG,
-            onRest: ({ finished }) => {
-              if (finished) settle();
-            },
-          });
-        });
-      }
     },
-    [opened, spread, maxSpread, fetchPage, flipApi],
+    [opened, spread, maxSpread, fetchPage],
   );
 
   useEffect(() => {
     if (opened) return;
-    flipApi.set({ rotateY: 0 });
+    flipApi.start({ rotateY: 0, immediate: true });
     setTurning(null);
+    setFrozenSpread(null);
+    frozenSpreadRef.current = null;
     setSpread(0);
     lockRef.current = false;
+    pendingAnimRef.current = null;
   }, [opened, flipApi]);
 
-  // Static panes + turning-sheet faces, derived from the spread model.
-  const leftIndex = turning === "prev" ? 2 * spread - 3 : 2 * spread - 1;
-  const rightIndex = turning === "next" ? 2 * spread + 2 : 2 * spread;
-  const sheetFrontIndex = turning === "prev" ? 2 * spread - 2 : 2 * spread;
-  const sheetBackIndex = turning === "prev" ? 2 * spread - 1 : 2 * spread + 1;
+  const viewSpread = frozenSpread ?? spread;
+
+  const leftIndex = 2 * viewSpread - 1;
+  const rightIndex =
+    turning === "next" ? 2 * viewSpread + 2 : 2 * viewSpread;
+
+  const sheetFrontIndex =
+    turning === "prev" ? 2 * viewSpread - 2 : 2 * viewSpread;
+  const sheetBackIndex =
+    turning === "prev" ? 2 * viewSpread - 1 : 2 * viewSpread + 1;
 
   return {
     spread,

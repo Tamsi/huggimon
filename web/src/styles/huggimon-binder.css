@@ -266,50 +266,10 @@
   transform-style: preserve-3d;
 }
 
-/* Central spine (ring binder mechanism) */
+/* Central crease — minimal book fold */
 .tcg-binder__gutter {
-  position: relative;
-  z-index: 6;
-  flex-shrink: 0;
-  width: var(--tcg-gutter, 44px);
-  background: linear-gradient(90deg, #4a0815, #881337 50%, #4a0815);
-  box-shadow:
-    inset 6px 0 12px rgba(0, 0, 0, 0.5),
-    inset -6px 0 12px rgba(0, 0, 0, 0.5);
+  display: none;
 }
-
-.tcg-binder__spine-text {
-  position: absolute;
-  left: 50%;
-  top: 8%;
-  transform: translateX(-50%) rotate(-90deg) translateX(-100%);
-  transform-origin: left center;
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: 0.35em;
-  color: rgba(255, 255, 255, 0.55);
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.tcg-binder__ring {
-  position: absolute;
-  left: 50%;
-  width: 26px;
-  height: 26px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: var(--hk-ring);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  z-index: 20;
-  pointer-events: none;
-}
-
-.tcg-binder__ring:nth-of-type(1) { top: 20%; }
-.tcg-binder__ring:nth-of-type(2) { top: 50%; }
-.tcg-binder__ring:nth-of-type(3) { top: 80%; }
 
 /* Stacked page edges hinting at remaining sheets */
 .tcg-binder__stack-edge {
@@ -343,11 +303,22 @@
   bottom: 0;
   left: calc((100% - var(--tcg-gutter, 44px)) / 2 + var(--tcg-gutter, 44px));
   width: calc((100% - var(--tcg-gutter, 44px)) / 2);
-  z-index: 24;
+  z-index: 1;
   transform-style: preserve-3d;
   transform-origin: left center;
   will-change: transform;
+  visibility: hidden;
   pointer-events: none;
+}
+
+.tcg-binder__sheet--live {
+  visibility: visible;
+  z-index: 24;
+}
+
+.tcg-binder--turning .tcg-binder__pane--under-turn .tcg-page {
+  /* During a forward turn the right pane shows the page underneath */
+  opacity: 1;
 }
 
 .tcg-binder__sheet-face {

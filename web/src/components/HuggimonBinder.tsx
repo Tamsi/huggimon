@@ -117,7 +117,7 @@ function PaneContent({
   );
 }
 
-const GUTTER_PX = 44;
+const GUTTER_PX = 0;
 
 export function HuggimonBinder({ card, initialPage }: Props) {
   const { opened, opening, isVisible, open } = useBinderOpen();
@@ -209,14 +209,11 @@ export function HuggimonBinder({ card, initialPage }: Props) {
                   />
                 </div>
 
-                <div className="tcg-binder__gutter" aria-hidden>
-                  <span className="tcg-binder__spine-text">HuggiMon</span>
-                  <span className="tcg-binder__ring" />
-                  <span className="tcg-binder__ring" />
-                  <span className="tcg-binder__ring" />
-                </div>
+                <div className="tcg-binder__gutter" aria-hidden />
 
-                <div className="tcg-binder__pane tcg-binder__pane--right">
+                <div
+                  className={`tcg-binder__pane tcg-binder__pane--right${turning === "next" ? " tcg-binder__pane--under-turn" : ""}`}
+                >
                   {spread < maxSpread && (
                     <div className="tcg-binder__stack-edge tcg-binder__stack-edge--right" aria-hidden />
                   )}
@@ -228,8 +225,11 @@ export function HuggimonBinder({ card, initialPage }: Props) {
                   />
                 </div>
 
-                {turning && (
-                  <animated.div className="tcg-binder__sheet" style={sheetStyle} aria-hidden>
+                <animated.div
+                  className={`tcg-binder__sheet${turning ? " tcg-binder__sheet--live" : ""}`}
+                  style={sheetStyle}
+                  aria-hidden={!turning}
+                >
                     <div className="tcg-binder__sheet-face tcg-binder__sheet-face--front">
                       <PaneContent
                         data={sheetFront}
@@ -247,7 +247,6 @@ export function HuggimonBinder({ card, initialPage }: Props) {
                       />
                     </div>
                   </animated.div>
-                )}
               </div>
             </BinderActiveCardProvider>
           </div>
