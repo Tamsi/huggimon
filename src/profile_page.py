@@ -4,6 +4,7 @@ import html
 
 from src.binder_fetcher import BinderPage
 from src.binder_html import render_binder_html
+from src.binder_interactive import render_binder_interactive
 from src.pokecard_html import render_pokecard_html
 from src.scoring import CardData
 
@@ -253,8 +254,9 @@ def render_profile_page(
 
     <h2 class="section-title">Follower binder</h2>
     <div class="binder-wrap">
-      {binder_fragment}
+      <div id="hbi-binder-wrap">{binder_fragment}</div>
       <div class="binder-pager">{prev_link}{next_link}</div>
+      {render_binder_interactive(binder.owner)}
     </div>
   </main>
 

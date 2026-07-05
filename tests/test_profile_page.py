@@ -105,3 +105,14 @@ class TestRenderProfilePage:
             app_url="https://huggimon.test/",
         )
         assert 'href="https://huggimon.test/tamsi?page=2"' in doc
+
+    def test_contains_interactive_binder_wrap(self):
+        doc = render_profile_page(
+            _sample_card(),
+            _sample_binder(),
+            profile_url="https://huggimon.test/tamsi",
+            card_png_url="https://huggimon.test/api/card/tamsi.png",
+            app_url="https://huggimon.test/",
+        )
+        assert 'id="hbi-binder-wrap"' in doc
+        assert "hbi-prev" in doc or "data-hbi-bound" in doc
