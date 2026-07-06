@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useState, type RefObject } from "react";
-import {
-  captureCardGif,
-  downloadBlob,
-  openBlobInTab,
-} from "@/lib/capture-card-gif";
+import { captureCardGif, downloadBlob } from "@/lib/capture-card-gif";
 
 export function useCardGif(
   cardRef: RefObject<HTMLElement | null>,
@@ -31,67 +27,30 @@ export function useCardGif(
     }
   }, [cardRef]);
 
-  const downloadGif = useCallback(async () => {
+  const downloadCard = useCallback(async () => {
     try {
       const blob = await renderGif();
       downloadBlob(blob, `${username}-huggimon.gif`);
-      notify("GIF downloaded");
+      notify("Card downloaded");
     } catch {
       notify("Capture failed — try again");
     }
   }, [renderGif, username, notify]);
 
-  const copyGif = useCallback(async () => {
+  const copyCard = useCallback(async () => {
     try {
       const blob = await renderGif();
       if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
         downloadBlob(blob, `${username}-huggimon.gif`);
-        notify("Clipboard unavailable — GIF downloaded");
+        notify("Clipboard unavailable — card downloaded");
         return;
       }
       await navigator.clipboard.write([
         new ClipboardItem({ "image/gif": blob }),
       ]);
-      notify("GIF copied");
+      notify("Card copied");
     } catch {
-      notify("Copy failed — try Download GIF");
-    }
-  }, [renderGif, username, notify]);
-
-  const openGif = useCallback(async () => {
-    try {
-      const blob = await renderGif();
-      openBlobInTab(blob);
-    } catch {
-      notify("Capture failed — try again");
-    }
-  }, [renderGif, notify]);
-
-  const shareGif = useCallback(async () => {
-    try {
-      const blob = await renderGif();
-      const file = new File([blob], `${username}-huggimon.gif`, {
-        type: "image/gif",
-      });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `${username} — HuggiMon trainer card`,
-        });
-        notify("Shared");
-        return;
-      }
-      if (navigator.clipboard?.write && typeof ClipboardItem !== "undefined") {
-        await navigator.clipboard.write([
-          new ClipboardItem({ "image/gif": blob }),
-        ]);
-        notify("GIF copied");
-        return;
-      }
-      downloadBlob(blob, `${username}-huggimon.gif`);
-      notify("Share unavailable — GIF downloaded");
-    } catch {
-      notify("Share failed");
+      notify("Copy failed — try Download Card");
     }
   }, [renderGif, username, notify]);
 
@@ -104,9 +63,7 @@ export function useCardGif(
     busy,
     toast,
     copyLink,
-    downloadGif,
-    copyGif,
-    openGif,
-    shareGif,
+    downloadCard,
+    copyCard,
   };
 }

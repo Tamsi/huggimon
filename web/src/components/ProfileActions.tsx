@@ -21,8 +21,11 @@ export function ProfileActions({
   displayName,
   profileUrl,
 }: Props) {
-  const { busy, toast, copyLink, downloadGif, copyGif, openGif, shareGif } =
-    useCardGif(cardRef, username, profileUrl);
+  const { busy, toast, copyLink, downloadCard, copyCard } = useCardGif(
+    cardRef,
+    username,
+    profileUrl,
+  );
 
   const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText(displayName))}&url=${encodeURIComponent(profileUrl)}`;
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}`;
@@ -54,35 +57,19 @@ export function ProfileActions({
       </a>
       <button
         type="button"
-        onClick={() => void shareGif()}
+        onClick={() => void downloadCard()}
         disabled={busy}
         className="profile-action"
       >
-        {busy ? "Capturing holo…" : "Share GIF"}
+        {busy ? "Capturing holo…" : "Download Card"}
       </button>
       <button
         type="button"
-        onClick={() => void downloadGif()}
+        onClick={() => void copyCard()}
         disabled={busy}
         className="profile-action"
       >
-        Download GIF
-      </button>
-      <button
-        type="button"
-        onClick={() => void copyGif()}
-        disabled={busy}
-        className="profile-action"
-      >
-        Copy GIF
-      </button>
-      <button
-        type="button"
-        onClick={() => void openGif()}
-        disabled={busy}
-        className="profile-action"
-      >
-        Open GIF
+        Copy Card
       </button>
 
       {toast && (

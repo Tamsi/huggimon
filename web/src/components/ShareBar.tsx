@@ -20,8 +20,11 @@ export function ShareBar({
   profileUrl,
   cardRef,
 }: Props) {
-  const { busy, toast, copyLink, downloadGif, copyGif, openGif, shareGif } =
-    useCardGif(cardRef, username, profileUrl);
+  const { busy, toast, copyLink, downloadCard, copyCard } = useCardGif(
+    cardRef,
+    username,
+    profileUrl,
+  );
 
   const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText(displayName))}&url=${encodeURIComponent(profileUrl)}`;
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}`;
@@ -41,35 +44,19 @@ export function ShareBar({
         </a>
         <button
           type="button"
-          onClick={() => void shareGif()}
+          onClick={() => void downloadCard()}
           disabled={busy}
           className="hk-share__btn"
         >
-          {busy ? "Capturing…" : "Share GIF"}
+          {busy ? "Capturing…" : "Download Card"}
         </button>
         <button
           type="button"
-          onClick={() => void downloadGif()}
+          onClick={() => void copyCard()}
           disabled={busy}
           className="hk-share__btn"
         >
-          Download GIF
-        </button>
-        <button
-          type="button"
-          onClick={() => void copyGif()}
-          disabled={busy}
-          className="hk-share__btn"
-        >
-          Copy GIF
-        </button>
-        <button
-          type="button"
-          onClick={() => void openGif()}
-          disabled={busy}
-          className="hk-share__btn"
-        >
-          Open GIF
+          Copy Card
         </button>
       </div>
       {toast && (

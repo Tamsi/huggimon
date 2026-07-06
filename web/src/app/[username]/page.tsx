@@ -15,17 +15,40 @@ async function profileUrl(username: string): Promise<string> {
   return `${proto}://${host}/${encodeURIComponent(username)}`;
 }
 
+const OG_WIDTH = 420;
+const OG_HEIGHT = Math.round(OG_WIDTH * (921 / 660));
+
 export async function generateMetadata({ params }: Props) {
   const { username } = await params;
   try {
     const card = buildCard(await fetchHfProfile(username));
+    const pageUrl = await profileUrl(card.username);
+    const origin = new URL(pageUrl).origin;
+    const gifUrl = `${origin}/api/card/${encodeURIComponent(card.username)}/gif`;
+
     return {
       title: `${card.displayName} — HuggiMon`,
       description: `Level ${card.level} ${card.type} trainer · ${card.rarity} · ${card.energyName} energy`,
       openGraph: {
+        type: "website",
+        url: pageUrl,
         title: `${card.displayName} — HuggiMon Trainer Card`,
         description: `LV ${card.level} ${card.type} · ${card.rarity}`,
-        images: [`/api/card/${card.username}/face`],
+        images: [
+          {
+            url: gifUrl,
+            width: OG_WIDTH,
+            height: OG_HEIGHT,
+            type: "image/gif",
+            alt: `${card.displayName} HuggiMon trainer card`,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${card.displayName} — HuggiMon Trainer Card`,
+        description: `LV ${card.level} ${card.type} · ${card.rarity}`,
+        images: [gifUrl],
       },
     };
   } catch {
