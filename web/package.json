@@ -12,6 +12,8 @@
   "dependencies": {
     "@react-spring/web": "^10.1.2",
     "@resvg/resvg-js": "^2.6.2",
+    "gifenc": "^1.0.3",
+    "html-to-image": "^1.11.13",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",

@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useRef, type ReactNode, type RefObject } from "react";
+import { useCardGif } from "@/hooks/use-card-gif";
 
 type Props = {
   username: string;
   displayName: string;
   profileUrl: string;
-  faceUrl: string;
+  cardRef: RefObject<HTMLElement | null>;
 };
 
 function shareText(displayName: string): string {
@@ -17,32 +18,10 @@ export function ShareBar({
   username,
   displayName,
   profileUrl,
-  faceUrl,
+  cardRef,
 }: Props) {
-  const [toast, setToast] = useState<string | null>(null);
-
-  const notify = useCallback((msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 2200);
-  }, []);
-
-  const copyLink = useCallback(async () => {
-    await navigator.clipboard.writeText(profileUrl);
-    notify("Link copied!");
-  }, [profileUrl, notify]);
-
-  const copyImage = useCallback(async () => {
-    try {
-      const res = await fetch(faceUrl);
-      const blob = await res.blob();
-      await navigator.clipboard.write([
-        new ClipboardItem({ [blob.type]: blob }),
-      ]);
-      notify("Image copied!");
-    } catch {
-      notify("Could not copy image — try Download");
-    }
-  }, [faceUrl, notify]);
+  const { busy, toast, copyLink, downloadGif, copyGif, openGif, shareGif } =
+    useCardGif(cardRef, username, profileUrl);
 
   const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText(displayName))}&url=${encodeURIComponent(profileUrl)}`;
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}`;
@@ -51,7 +30,7 @@ export function ShareBar({
     <>
       <p className="hk-share__title">Share my card</p>
       <div className="hk-share__grid">
-        <button type="button" onClick={copyLink} className="hk-share__btn">
+        <button type="button" onClick={() => void copyLink()} className="hk-share__btn">
           Copy link
         </button>
         <a href={xUrl} target="_blank" rel="noreferrer" className="hk-share__btn">
@@ -60,30 +39,65 @@ export function ShareBar({
         <a href={linkedInUrl} target="_blank" rel="noreferrer" className="hk-share__btn">
           LinkedIn
         </a>
-        <a
-          href={faceUrl}
-          download={`${username}-huggimon.png`}
+        <button
+          type="button"
+          onClick={() => void shareGif()}
+          disabled={busy}
           className="hk-share__btn"
         >
-          Download
-        </a>
-        <button type="button" onClick={copyImage} className="hk-share__btn">
-          Copy image
+          {busy ? "Capturing…" : "Share GIF"}
         </button>
-        <a
-          href={`${faceUrl}?story=1`}
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          onClick={() => void downloadGif()}
+          disabled={busy}
           className="hk-share__btn"
         >
-          Story format
-        </a>
+          Download GIF
+        </button>
+        <button
+          type="button"
+          onClick={() => void copyGif()}
+          disabled={busy}
+          className="hk-share__btn"
+        >
+          Copy GIF
+        </button>
+        <button
+          type="button"
+          onClick={() => void openGif()}
+          disabled={busy}
+          className="hk-share__btn"
+        >
+          Open GIF
+        </button>
       </div>
       {toast && (
         <div role="status" className="hk-toast">
           {toast}
         </div>
       )}
+    </>
+  );
+}
+
+/** Wrapper when the card lives in a sibling container. */
+export function ShareBarWithCard({
+  username,
+  displayName,
+  profileUrl,
+  children,
+}: Omit<Props, "cardRef"> & { children: ReactNode }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  return (
+    <>
+      <div ref={cardRef}>{children}</div>
+      <ShareBar
+        cardRef={cardRef}
+        username={username}
+        displayName={displayName}
+        profileUrl={profileUrl}
+      />
     </>
   );
 }

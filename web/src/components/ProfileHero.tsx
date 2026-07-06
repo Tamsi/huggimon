@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import { PokemonCard } from "@/components/PokemonCard";
 import { ProfileActions } from "@/components/ProfileActions";
 import { pokemonTypeLabel } from "@/lib/pokemon-types";
@@ -12,10 +15,18 @@ type Props = {
   profileUrl: string;
 };
 
-export function ProfileHero({ card, variant, faceUrl, faceInline, profileUrl }: Props) {
+export function ProfileHero({
+  card,
+  variant,
+  faceUrl,
+  faceInline,
+  profileUrl,
+}: Props) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
   return (
     <section className="profile-hero" aria-label="My card">
-      <div className="profile-hero__card">
+      <div ref={cardRef} className="profile-hero__card">
         <PokemonCard
           card={card}
           variant={variant}
@@ -39,10 +50,10 @@ export function ProfileHero({ card, variant, faceUrl, faceInline, profileUrl }: 
         </header>
 
         <ProfileActions
+          cardRef={cardRef}
           username={card.username}
           displayName={card.displayName}
           profileUrl={profileUrl}
-          faceUrl={faceUrl}
         />
 
         <a
