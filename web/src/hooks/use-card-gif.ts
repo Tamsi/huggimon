@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useState, type RefObject } from "react";
-import { captureCardGif, downloadBlob } from "@/lib/capture-card-gif";
+import {
+  captureCardGif,
+  captureCardPng,
+  downloadBlob,
+} from "@/lib/capture-card-gif";
 
 export function useCardGif(
   cardRef: RefObject<HTMLElement | null>,
@@ -37,22 +41,42 @@ export function useCardGif(
     }
   }, [renderGif, username, notify]);
 
-  const copyCard = useCallback(async () => {
-    try {
-      const blob = await renderGif();
-      if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
-        downloadBlob(blob, `${username}-huggimon.gif`);
-        notify("Clipboard unavailable — card downloaded");
-        return;
-      }
-      await navigator.clipboard.write([
-        new ClipboardItem({ "image/gif": blob }),
-      ]);
-      notify("Card copied");
-    } catch {
-      notify("Copy failed — try Download Card");
+  const copyCard = useCallback(() => {
+    const root = cardRef.current;
+    if (!root) {
+      notify("Card not ready — try again");
+      return;
     }
-  }, [renderGif, username, notify]);
+
+    if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+      void (async () => {
+        setBusy(true);
+        try {
+          const blob = await captureCardPng(root);
+          downloadBlob(blob, `${username}-huggimon.png`);
+          notify("Clipboard unavailable — card downloaded");
+        } catch {
+          notify("Capture failed — try again");
+        } finally {
+          setBusy(false);
+        }
+      })();
+      return;
+    }
+
+    setBusy(true);
+    const pngPromise = captureCardPng(root);
+
+    void navigator.clipboard
+      .write([
+        new ClipboardItem({
+          "image/png": pngPromise,
+        }),
+      ])
+      .then(() => notify("Card copied"))
+      .catch(() => notify("Copy failed — try Download Card"))
+      .finally(() => setBusy(false));
+  }, [cardRef, username, notify]);
 
   const copyLink = useCallback(async () => {
     await navigator.clipboard.writeText(profileUrl);

@@ -33,6 +33,36 @@ function dispatchPointer(rotator: HTMLElement, clientX: number, clientY: number)
   rotator.dispatchEvent(new PointerEvent("pointermove", init));
 }
 
+/** Single holo frame as PNG — fast enough for clipboard user-activation window. */
+export async function captureCardPng(cardRoot: HTMLElement): Promise<Blob> {
+  const card = cardRoot.querySelector<HTMLElement>(".card.interactive");
+  const rotator = cardRoot.querySelector<HTMLElement>(".card__rotator");
+  if (!card || !rotator) {
+    throw new Error("Card not ready — wait for the face image to load.");
+  }
+
+  const w = EXPORT_WIDTH;
+  const h = Math.round(w * CARD_ASPECT);
+  const rect = rotator.getBoundingClientRect();
+  const x = rect.left + rect.width * 0.62;
+  const y = rect.top + rect.height * 0.38;
+
+  dispatchPointer(rotator, x, y);
+  await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+  await new Promise((r) => setTimeout(r, 80));
+
+  const dataUrl = await toPng(card, {
+    width: w,
+    height: h,
+    pixelRatio: 1,
+    cacheBust: true,
+  });
+  const res = await fetch(dataUrl);
+  return res.blob();
+}
+
 /** Record holo / tilt motion on the live profile card into a GIF blob. */
 export async function captureCardGif(cardRoot: HTMLElement): Promise<Blob> {
   const card = cardRoot.querySelector<HTMLElement>(".card.interactive");
