@@ -2,6 +2,11 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ProfileBinder } from "@/components/ProfileBinder";
 import { getCardFacePng } from "@/lib/card-face-cache";
+import { getCardSocialPng } from "@/lib/card-social-cache";
+import {
+  SOCIAL_OG_HEIGHT,
+  SOCIAL_OG_WIDTH,
+} from "@/lib/card-social-image";
 import { variantForLevel } from "@/lib/card-variant";
 import { fetchHfProfile } from "@/lib/hf-fetcher";
 import { buildCard } from "@/lib/scoring";
@@ -15,16 +20,13 @@ async function profileUrl(username: string): Promise<string> {
   return `${proto}://${host}/${encodeURIComponent(username)}`;
 }
 
-const OG_WIDTH = 420;
-const OG_HEIGHT = Math.round(OG_WIDTH * (921 / 660));
-
 export async function generateMetadata({ params }: Props) {
   const { username } = await params;
   try {
     const card = buildCard(await fetchHfProfile(username));
     const pageUrl = await profileUrl(card.username);
     const origin = new URL(pageUrl).origin;
-    const gifUrl = `${origin}/api/card/${encodeURIComponent(card.username)}/gif`;
+    const imageUrl = `${origin}/api/card/${encodeURIComponent(card.username)}/social`;
 
     return {
       title: `${card.displayName} — HuggiMon`,
@@ -36,10 +38,10 @@ export async function generateMetadata({ params }: Props) {
         description: `LV ${card.level} ${card.type} · ${card.rarity}`,
         images: [
           {
-            url: gifUrl,
-            width: OG_WIDTH,
-            height: OG_HEIGHT,
-            type: "image/gif",
+            url: imageUrl,
+            width: SOCIAL_OG_WIDTH,
+            height: SOCIAL_OG_HEIGHT,
+            type: "image/png",
             alt: `${card.displayName} HuggiMon trainer card`,
           },
         ],
@@ -48,7 +50,7 @@ export async function generateMetadata({ params }: Props) {
         card: "summary_large_image",
         title: `${card.displayName} — HuggiMon Trainer Card`,
         description: `LV ${card.level} ${card.type} · ${card.rarity}`,
-        images: [gifUrl],
+        images: [imageUrl],
       },
     };
   } catch {
@@ -72,6 +74,7 @@ export default async function ProfilePage({ params }: Props) {
   const [url, facePng] = await Promise.all([
     profileUrl(card.username),
     getCardFacePng(card.username),
+    getCardSocialPng(card.username),
   ]);
   const faceInline = `data:image/png;base64,${facePng.toString("base64")}`;
 

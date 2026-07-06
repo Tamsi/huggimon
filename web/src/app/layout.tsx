@@ -11,6 +11,9 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://huggimon.co",
+  ),
   title: "HuggiMon — Hugging Face Trainer Cards",
   description:
     "Pokemon TCG-style trainer cards from Hugging Face profiles, with holographic effects by pokemon-cards-css.",
