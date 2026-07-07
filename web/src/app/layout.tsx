@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
+import { AmbientBackdrop } from "@/components/AmbientBackdrop";
 import { SiteHeader } from "@/components/SiteHeader";
 import { POKEMON_CARD_STYLES } from "@/lib/pokemon-card-styles";
 import "./globals.css";
@@ -36,6 +37,7 @@ export default function RootLayout({
         ))}
       </head>
       <body className="hk-body antialiased">
+        <AmbientBackdrop fixed />
         <SiteHeader />
         {children}
       </body>

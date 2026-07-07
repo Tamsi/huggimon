@@ -29,6 +29,8 @@ type Props = {
   pageUrl?: string;
   imagePriority?: "high" | "low" | "auto";
   imageLoading?: "eager" | "lazy";
+  /** Homepage stack — holo tilt only, no flip / card back */
+  preview?: boolean;
 };
 
 function seedFromUsername(username: string): { x: number; y: number } {
@@ -48,6 +50,7 @@ export function PokemonCard({
   pageUrl,
   imagePriority = pocket ? "low" : "high",
   imageLoading = pocket ? "lazy" : "eager",
+  preview = false,
 }: Props) {
   const faceImage = faceSrc ?? faceUrl;
   const binderActive = useBinderActiveCard();
@@ -166,9 +169,10 @@ export function PokemonCard({
   }, [api]);
 
   const toggleActive = useCallback(() => {
+    if (preview) return;
     if (pocket) popover.toggle();
     else toggleFlip();
-  }, [pocket, popover, toggleFlip]);
+  }, [preview, pocket, popover, toggleFlip]);
 
   const onPointerMoveHandler = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
@@ -319,41 +323,64 @@ export function PokemonCard({
       aria-hidden={inPocket && active ? true : undefined}
     >
       <div className="card__translater">
-        <button
-          type="button"
-          className="card__rotator"
-          aria-label={`Trainer card for ${card.displayName}`}
-          aria-pressed={active}
-          onClick={toggleActive}
-          onPointerMove={onPointerMoveHandler}
-          onPointerLeave={() => interactEnd()}
-          onBlur={() => interactEnd(0)}
-        >
-          {!pocket && (
-            <img
-              className="card__back"
-              src={CARD_BACK}
-              alt=""
-              loading="lazy"
-              width={660}
-              height={921}
-            />
-          )}
-          <div className="card__front" style={{ ...staticStyles, ...foilStyles }}>
-            <img
-              src={faceImage}
-              alt={`Front of ${card.displayName} trainer card`}
-              width={660}
-              height={921}
-              loading={imageLoading}
-              decoding={faceSrc ? "sync" : "async"}
-              fetchPriority={imagePriority}
-              onLoad={() => setLoading(false)}
-            />
-            <div className="card__shine" />
-            <div className="card__glare" />
+        {preview ? (
+          <div
+            className="card__rotator"
+            onPointerMove={onPointerMoveHandler}
+            onPointerLeave={() => interactEnd()}
+          >
+            <div className="card__front" style={{ ...staticStyles, ...foilStyles }}>
+              <img
+                src={faceImage}
+                alt={`Front of ${card.displayName} trainer card`}
+                width={660}
+                height={921}
+                loading={imageLoading}
+                decoding={faceSrc ? "sync" : "async"}
+                fetchPriority={imagePriority}
+                onLoad={() => setLoading(false)}
+              />
+              <div className="card__shine" />
+              <div className="card__glare" />
+            </div>
           </div>
-        </button>
+        ) : (
+          <button
+            type="button"
+            className="card__rotator"
+            aria-label={`Trainer card for ${card.displayName}`}
+            aria-pressed={active}
+            onClick={toggleActive}
+            onPointerMove={onPointerMoveHandler}
+            onPointerLeave={() => interactEnd()}
+            onBlur={() => interactEnd(0)}
+          >
+            {!pocket && (
+              <img
+                className="card__back"
+                src={CARD_BACK}
+                alt=""
+                loading="lazy"
+                width={660}
+                height={921}
+              />
+            )}
+            <div className="card__front" style={{ ...staticStyles, ...foilStyles }}>
+              <img
+                src={faceImage}
+                alt={`Front of ${card.displayName} trainer card`}
+                width={660}
+                height={921}
+                loading={imageLoading}
+                decoding={faceSrc ? "sync" : "async"}
+                fetchPriority={imagePriority}
+                onLoad={() => setLoading(false)}
+              />
+              <div className="card__shine" />
+              <div className="card__glare" />
+            </div>
+          </button>
+        )}
       </div>
     </animated.div>
   );

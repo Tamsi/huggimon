@@ -79,8 +79,8 @@ export default async function ProfilePage({ params }: Props) {
   const faceInline = `data:image/png;base64,${facePng.toString("base64")}`;
 
   return (
-    <div className="hk-shell hk-desk hk-body">
-      <main className="hk-main">
+    <div className="hk-shell hk-home-shell">
+      <main className="hk-main hk-main--profile">
         <ProfileBinder
           card={card}
           variant={variant}

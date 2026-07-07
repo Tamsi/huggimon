@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { fetchGitHubStars, formatStarCount } from "@/lib/github-stars";
 import { HeaderNav } from "./HeaderNav";
+import { HeaderSearch } from "./HeaderSearch";
 
 export async function SiteHeader() {
   const stars = await fetchGitHubStars();
@@ -20,6 +21,10 @@ export async function SiteHeader() {
             priority
           />
         </Link>
+
+        <div className="hk-header__search">
+          <HeaderSearch />
+        </div>
 
         <HeaderNav starsLabel={starsLabel} stars={stars} />
       </div>
