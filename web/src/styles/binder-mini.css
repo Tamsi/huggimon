@@ -152,6 +152,21 @@
     0 0 140px -24px rgba(255, 255, 255, 0.2);
 }
 
+.hpk-pocket-portal-slot--hero::after {
+  width: 175%;
+  height: 175%;
+}
+
+.hpk-pocket-portal-slot--hero .card.hpk-pocket.active .card__rotator {
+  box-shadow:
+    0 0 3px -1px white,
+    0 0 3px 1px var(--card-edge),
+    0 0 22px 6px var(--card-glow),
+    0 36px 72px -16px rgba(0, 0, 0, 0.75),
+    0 0 110px -6px var(--card-glow),
+    0 0 160px -20px rgba(255, 255, 255, 0.24);
+}
+
 .hpk-card-popup__link {
   position: fixed;
   z-index: 420;

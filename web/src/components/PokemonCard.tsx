@@ -146,6 +146,7 @@ export function PokemonCard({
       setInteracting(true);
       api.start({ opacity: 1, config: SPRING_INTERACT });
     },
+    sizeMode: expandOnTap ? "hero" : "pocket",
   });
 
   const interactEnd = useCallback(
@@ -433,7 +434,7 @@ export function PokemonCard({
         >
           {popover.active && layoutAnchor.width > 4 && (
             <div
-              className="hpk-pocket-portal-slot"
+              className={`hpk-pocket-portal-slot${expandOnTap ? " hpk-pocket-portal-slot--hero" : ""}`}
               style={{
                 top: layoutAnchor.rectTop,
                 left: layoutAnchor.rectLeft,

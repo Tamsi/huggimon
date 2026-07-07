@@ -9,8 +9,22 @@ import { round } from "@/lib/math";
 const SPRING_POPOVER = { stiffness: 0.033, damping: 0.45 };
 const LINK_RESERVE_PX = 56;
 const POPOVER_MAX_SCALE = 1.85;
+const HERO_POPOVER_MAX_SCALE = 2.8;
 
-function popoverScale(size: { width: number; height: number }): number {
+export type PopoverSizeMode = "pocket" | "hero";
+
+function popoverScale(
+  size: { width: number; height: number },
+  mode: PopoverSizeMode,
+): number {
+  if (mode === "hero") {
+    const maxW = Math.min(440, window.innerWidth * 0.94);
+    const maxH = Math.min(640, (window.innerHeight - LINK_RESERVE_PX) * 0.8);
+    const scaleW = maxW / size.width;
+    const scaleH = maxH / size.height;
+    return Math.min(scaleW, scaleH, HERO_POPOVER_MAX_SCALE);
+  }
+
   const maxW = Math.min(300, window.innerWidth * 0.42);
   const maxH = Math.min(420, (window.innerHeight - LINK_RESERVE_PX) * 0.48);
   const scaleW = maxW / size.width;
@@ -23,6 +37,7 @@ type Options = {
   anchorRef: RefObject<HTMLElement | null>;
   onInteractEnd?: (delay?: number) => void;
   onOpen?: () => void;
+  sizeMode?: PopoverSizeMode;
 };
 
 export function useBinderPopover({
@@ -30,6 +45,7 @@ export function useBinderPopover({
   anchorRef,
   onInteractEnd,
   onOpen,
+  sizeMode = "pocket",
 }: Options) {
   const binderActive = useBinderActiveCard();
   const [localActiveKey, setLocalActiveKey] = useState<string | null>(null);
@@ -85,10 +101,13 @@ export function useBinderPopover({
 
     if (!target) return;
 
-    const scale = popoverScale({
-      width: target.offsetWidth,
-      height: target.offsetHeight,
-    });
+    const scale = popoverScale(
+      {
+        width: target.offsetWidth,
+        height: target.offsetHeight,
+      },
+      sizeMode,
+    );
     setCenter(scale);
     onOpen?.();
 
@@ -97,7 +116,7 @@ export function useBinderPopover({
       firstPopRef.current = false;
     }
     popApi.start({ scale, config: SPRING_POPOVER });
-  }, [anchorRef, popApi, setCenter, onOpen]);
+  }, [anchorRef, popApi, setCenter, onOpen, sizeMode]);
 
   const close = useCallback(() => {
     if (binderActive) binderActive.close();
@@ -135,11 +154,14 @@ export function useBinderPopover({
     if (!active) return;
     const onResize = () => {
       const s = popSprings.scale.get();
-      if (s > 1) setCenter(s);
+      if (s > 1) {
+        setCenter(s);
+        if (sizeMode === "hero") popover();
+      }
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [active, setCenter, popSprings.scale]);
+  }, [active, setCenter, popSprings.scale, sizeMode, popover]);
 
   return {
     active,
