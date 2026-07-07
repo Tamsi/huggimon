@@ -212,37 +212,46 @@ export function PokemonCard({
     [setSprings, pocket, binderActive?.activeKey, card.username],
   );
 
+  const gyroEligible = gyroTilt || (pocket && isCoarsePointer);
+  const gyroActive =
+    gyroEligible &&
+    !loading &&
+    (!isCoarsePointer || !usesPopover || popover.active);
+
+  const deviceTilt = useDeviceCardTilt({
+    enabled: gyroActive,
+    onInteract: applyInteractFromPercent,
+  });
+
+  const preferGyro =
+    isCoarsePointer && gyroActive && deviceTilt.permission === "granted";
+
   const onPointerMoveHandler = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
+      if (preferGyro) return;
       const rect = e.currentTarget.getBoundingClientRect();
       const px = clamp(round((100 / rect.width) * (e.clientX - rect.left)), 0, 100);
       const py = clamp(round((100 / rect.height) * (e.clientY - rect.top)), 0, 100);
       applyInteractFromPercent(px, py);
     },
-    [applyInteractFromPercent],
+    [applyInteractFromPercent, preferGyro],
   );
 
-  const deviceTilt = useDeviceCardTilt({
-    enabled:
-      gyroTilt && !loading && (!tapToExpand || !isCoarsePointer || popover.active),
-    onInteract: applyInteractFromPercent,
-  });
-
   const onRotatorPointerDown = useCallback(async () => {
-    deviceTilt.onPointerDown();
+    if (!preferGyro) deviceTilt.onPointerDown();
     if (deviceTilt.needsPermissionPrompt) {
       await deviceTilt.prepareOnGesture();
     }
-  }, [deviceTilt]);
+  }, [deviceTilt, preferGyro]);
 
   const onRotatorPointerUp = useCallback(() => {
-    deviceTilt.onPointerUp();
-  }, [deviceTilt]);
+    if (!preferGyro) deviceTilt.onPointerUp();
+  }, [deviceTilt, preferGyro]);
 
   useEffect(() => {
-    if (!expandOnTap || !popover.active) return;
+    if (!isCoarsePointer || !popover.active) return;
     void deviceTilt.prepareOnGesture();
-  }, [expandOnTap, popover.active, deviceTilt]);
+  }, [isCoarsePointer, popover.active, deviceTilt]);
 
   useEffect(() => {
     if (!showcase || variant.dataRarity === "common") return;
@@ -359,7 +368,10 @@ export function PokemonCard({
     onPointerUp: onRotatorPointerUp,
     onPointerCancel: onRotatorPointerUp,
     onPointerMove: onPointerMoveHandler,
-    onPointerLeave: () => interactEnd(),
+    onPointerLeave: () => {
+      if (preferGyro && popover.active) return;
+      interactEnd();
+    },
   };
 
   const renderCardFace = () => (

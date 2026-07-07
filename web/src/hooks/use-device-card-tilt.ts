@@ -15,16 +15,24 @@ type Options = {
 };
 
 function orientationToPointer(
-  beta: number | null,
-  gamma: number | null,
-): { px: number; py: number } | null {
-  if (beta == null || gamma == null || Number.isNaN(beta) || Number.isNaN(gamma)) {
-    return null;
-  }
+  beta: number,
+  gamma: number,
+  baseBeta: number,
+  baseGamma: number,
+): { px: number; py: number } {
+  const px = clamp(50 + (gamma - baseGamma) * 0.9, 4, 96);
+  const py = clamp(50 + (beta - baseBeta) * 0.8, 4, 96);
+  return { px, py };
+}
 
-  // Portrait hold: gamma = left/right, beta = forward/back (≈45° when flat on a table).
-  const px = clamp(50 + gamma * 0.9, 4, 96);
-  const py = clamp(50 + (beta - 45) * 0.8, 4, 96);
+function motionToPointer(
+  x: number,
+  y: number,
+  baseX: number,
+  baseY: number,
+): { px: number; py: number } {
+  const px = clamp(50 + (x - baseX) * 5.5, 4, 96);
+  const py = clamp(50 + (baseY - y) * 5.5, 4, 96);
   return { px, py };
 }
 
@@ -34,9 +42,14 @@ function needsExplicitOrientationPermission(): boolean {
   return typeof ctor.requestPermission === "function";
 }
 
+function hasMotionSensors(): boolean {
+  if (typeof window === "undefined") return false;
+  return "DeviceOrientationEvent" in window || "DeviceMotionEvent" in window;
+}
+
 function canUseCoarsePointerTilt(): boolean {
   if (typeof window === "undefined") return false;
-  if (!("DeviceOrientationEvent" in window)) return false;
+  if (!hasMotionSensors()) return false;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
   return (
     window.matchMedia("(pointer: coarse)").matches ||
@@ -46,11 +59,17 @@ function canUseCoarsePointerTilt(): boolean {
 }
 
 export function useDeviceCardTilt({ enabled, onInteract }: Options) {
-  const [permission, setPermission] = useState<DeviceTiltPermission>("unknown");
+  const [permission, setPermission] = useState<DeviceTiltPermission>(() => {
+    if (typeof window === "undefined") return "unknown";
+    if (!canUseCoarsePointerTilt()) return "unsupported";
+    if (!needsExplicitOrientationPermission()) return "granted";
+    return "unknown";
+  });
   const pointerDownRef = useRef(false);
   const enabledRef = useRef(enabled);
   const permissionRef = useRef(permission);
   const onInteractRef = useRef(onInteract);
+  const orientationActiveRef = useRef(false);
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -82,38 +101,92 @@ export function useDeviceCardTilt({ enabled, onInteract }: Options) {
     }
 
     const ctor = DeviceOrientationEvent as DeviceOrientationEventWithPermission;
-    if (typeof ctor.requestPermission !== "function") {
-      setPermission("granted");
-      return true;
+    if (typeof ctor.requestPermission === "function") {
+      try {
+        const state = await ctor.requestPermission();
+        const granted = state === "granted";
+        setPermission(granted ? "granted" : "denied");
+        return granted;
+      } catch {
+        setPermission("denied");
+        return false;
+      }
     }
 
-    try {
-      const state = await ctor.requestPermission();
-      const granted = state === "granted";
-      setPermission(granted ? "granted" : "denied");
-      return granted;
-    } catch {
-      setPermission("denied");
-      return false;
-    }
+    setPermission("granted");
+    return true;
   }, []);
 
   useEffect(() => {
     if (!enabled) return;
     if (permission !== "granted") return;
 
-    const onOrientation = (event: DeviceOrientationEvent) => {
+    orientationActiveRef.current = false;
+
+    const baseline = {
+      beta: 0,
+      gamma: 0,
+      motionX: 0,
+      motionY: 0,
+      orientation: false,
+      motion: false,
+    };
+
+    const emit = (px: number, py: number) => {
       if (!enabledRef.current) return;
       if (pointerDownRef.current) return;
       if (permissionRef.current !== "granted") return;
+      onInteractRef.current(px, py);
+    };
 
-      const point = orientationToPointer(event.beta, event.gamma);
-      if (!point) return;
-      onInteractRef.current(point.px, point.py);
+    const onOrientation = (event: DeviceOrientationEvent) => {
+      const { beta, gamma } = event;
+      if (beta == null || gamma == null || Number.isNaN(beta) || Number.isNaN(gamma)) {
+        return;
+      }
+
+      if (!baseline.orientation) {
+        baseline.beta = beta;
+        baseline.gamma = gamma;
+        baseline.orientation = true;
+      }
+
+      orientationActiveRef.current = true;
+      const point = orientationToPointer(beta, gamma, baseline.beta, baseline.gamma);
+      emit(point.px, point.py);
+    };
+
+    const onMotion = (event: DeviceMotionEvent) => {
+      if (orientationActiveRef.current) return;
+
+      const gravity = event.accelerationIncludingGravity;
+      if (!gravity || gravity.x == null || gravity.y == null) return;
+
+      if (!baseline.motion) {
+        baseline.motionX = gravity.x;
+        baseline.motionY = gravity.y;
+        baseline.motion = true;
+      }
+
+      const point = motionToPointer(
+        gravity.x,
+        gravity.y,
+        baseline.motionX,
+        baseline.motionY,
+      );
+      emit(point.px, point.py);
     };
 
     window.addEventListener("deviceorientation", onOrientation);
-    return () => window.removeEventListener("deviceorientation", onOrientation);
+    window.addEventListener("deviceorientationabsolute", onOrientation);
+    window.addEventListener("devicemotion", onMotion);
+
+    return () => {
+      orientationActiveRef.current = false;
+      window.removeEventListener("deviceorientation", onOrientation);
+      window.removeEventListener("deviceorientationabsolute", onOrientation);
+      window.removeEventListener("devicemotion", onMotion);
+    };
   }, [enabled, permission]);
 
   const onPointerDown = useCallback(() => {
