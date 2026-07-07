@@ -67,7 +67,7 @@
 .card.hpk-tcg[data-rarity$="reverse holo"] .card__shine,
 .card.hpk-tcg[data-rarity$="reverse holo"] .card__glare:after,
 .card.hpk-tcg[data-rarity="amazing rare"] .card__shine,
-.card.hpk-tcg[data-rarity="radiant rare"] .card__shine {
+.card.hpk-tcg.hpk-trainer-face[data-rarity="radiant rare"] .card__shine {
   clip-path: var(--clip-trainer);
 }
 
@@ -77,7 +77,7 @@
   clip-path: var(--clip);
 }
 
-/* Full-card holo for rainbow / secret tiers */
+/* Full-card holo for rainbow tiers */
 .card.hpk-tcg[data-rarity="rare rainbow"] .card__shine,
 .card.hpk-tcg[data-rarity="rare rainbow"] .card__shine:before,
 .card.hpk-tcg[data-rarity="rare rainbow"] .card__shine:after,
@@ -85,11 +85,17 @@
 .card.hpk-tcg[data-rarity="rare rainbow alt"] .card__shine,
 .card.hpk-tcg[data-rarity="rare rainbow alt"] .card__shine:before,
 .card.hpk-tcg[data-rarity="rare rainbow alt"] .card__shine:after,
-.card.hpk-tcg[data-rarity="rare rainbow alt"] .card__glare,
-.card.hpk-tcg[data-rarity="rare secret"] .card__shine,
-.card.hpk-tcg[data-rarity="rare secret"] .card__shine:before,
-.card.hpk-tcg[data-rarity="rare secret"] .card__shine:after,
-.card.hpk-tcg[data-rarity="rare secret"] .card__glare {
+.card.hpk-tcg[data-rarity="rare rainbow alt"] .card__glare {
+  clip-path: none !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+/* Secret gold: radiant holo on full-bleed layout (no art-window clip) */
+.card.hpk-tcg.hpk-full-bleed[data-rarity="radiant rare"] .card__shine,
+.card.hpk-tcg.hpk-full-bleed[data-rarity="radiant rare"] .card__shine:before,
+.card.hpk-tcg.hpk-full-bleed[data-rarity="radiant rare"] .card__shine:after,
+.card.hpk-tcg.hpk-full-bleed[data-rarity="radiant rare"] .card__glare {
   clip-path: none !important;
   -webkit-mask-image: none !important;
   mask-image: none !important;

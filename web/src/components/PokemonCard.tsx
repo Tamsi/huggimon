@@ -7,7 +7,7 @@ import { useBinderActiveCard } from "@/contexts/binder-active-card";
 import { useBinderPopover } from "@/hooks/use-binder-popover";
 import { usePopupAnchor } from "@/hooks/use-popup-anchor";
 import type { CardVariant } from "@/lib/card-variant";
-import { faceLayoutClass, wireNumber, wireSubtypes } from "@/lib/card-variant";
+import { faceLayoutClass, holoRarityForVariant, wireNumber, wireSubtypes } from "@/lib/card-variant";
 import { energyTypeClass } from "@/lib/energy";
 import { clamp, round, adjust } from "@/lib/math";
 import type { CardData } from "@/lib/scoring";
@@ -309,7 +309,7 @@ export function PokemonCard({
     <animated.div
       ref={inPocket ? cardRef : portalCardRef}
       className={`${classNames}${inPocket && active ? " hpk-pocket--in-pocket" : ""}`}
-      data-rarity={variant.dataRarity}
+      data-rarity={holoRarityForVariant(variant)}
       data-supertype={variant.supertype}
       data-subtypes={subtypes}
       data-trainer-gallery={variant.trainerGallery ? "true" : "false"}

@@ -8,7 +8,7 @@ const getSocialBase64 = unstable_cache(
     const png = await buildSocialPreviewPng(face);
     return png.toString("base64");
   },
-  ["huggimon-card-social-v1"],
+  ["huggimon-card-social-v4"],
   { revalidate: 300 },
 );
 

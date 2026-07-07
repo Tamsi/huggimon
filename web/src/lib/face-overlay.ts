@@ -71,6 +71,11 @@ function buildTcgFrame(tier: ReturnType<typeof cardBorderTier>): { defs: string;
       <stop offset="35%" stop-color="#c9a227"/>
       <stop offset="70%" stop-color="#f0d878"/>
       <stop offset="100%" stop-color="#9a7b1a"/>
+    </linearGradient>
+    <linearGradient id="goldFrameSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.42)"/>
+      <stop offset="40%" stop-color="rgba(255,236,160,0.08)"/>
+      <stop offset="100%" stop-color="rgba(60,45,8,0.45)"/>
     </linearGradient>`,
       markup: `
   <mask id="tcgFrameMask">
@@ -79,8 +84,10 @@ function buildTcgFrame(tier: ReturnType<typeof cardBorderTier>): { defs: string;
   </mask>
   <g mask="url(#tcgFrameMask)">
     <rect width="${FACE_W}" height="${FACE_H}" rx="${FRAME_OUTER_RX}" fill="url(#goldFrameGrad)"/>
+    <rect width="${FACE_W}" height="${FACE_H}" rx="${FRAME_OUTER_RX}" fill="url(#goldFrameSheen)"/>
   </g>
-  <rect x="${inner}" y="${inner}" width="${iw}" height="${ih}" rx="${FRAME_INNER_RX}" fill="none" stroke="#5c4510" stroke-width="2"/>`,
+  <rect x="${inner}" y="${inner}" width="${iw}" height="${ih}" rx="${FRAME_INNER_RX}" fill="none" stroke="#5c4510" stroke-width="2"/>
+  <rect x="0.75" y="0.75" width="${FACE_W - 1.5}" height="${FACE_H - 1.5}" rx="${FRAME_OUTER_RX}" fill="none" stroke="#f5e6a8" stroke-width="1.25"/>`,
     };
   }
 
@@ -397,7 +404,7 @@ export function buildFullBleedOverlaySvg(
 
   const topGradient =
     style === "secret"
-      ? `<linearGradient id="top" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(212,175,55,0.92)"/><stop offset="100%" stop-color="rgba(212,175,55,0)"/></linearGradient>`
+      ? `<linearGradient id="top" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,214,102,0.95)"/><stop offset="55%" stop-color="rgba(212,162,39,0.42)"/><stop offset="100%" stop-color="rgba(212,162,39,0)"/></linearGradient>`
       : `<linearGradient id="top" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${theme.bodyLight}ee"/><stop offset="55%" stop-color="${theme.body}66"/><stop offset="100%" stop-color="${theme.body}00"/></linearGradient>`;
 
   const bottomGradient =
@@ -452,6 +459,27 @@ export function buildFullBleedOverlaySvg(
         ? `<rect x="20" y="${abilityY - 28}" width="${FACE_W - 40}" height="${FACE_H - abilityY - 24}" rx="14" fill="rgba(0,0,0,0.35)"/>`
         : "";
   const bottomHeight = style === "rainbow" ? 400 : 340;
+  const secretTintDefs =
+    style === "secret"
+      ? `<linearGradient id="typeTint" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff0b0" stop-opacity="0.34"/>
+      <stop offset="45%" stop-color="#d4af37" stop-opacity="0.24"/>
+      <stop offset="100%" stop-color="#7a5c12" stop-opacity="0.36"/>
+    </linearGradient>
+    <radialGradient id="goldGleam" cx="28%" cy="22%" r="70%">
+      <stop offset="0%" stop-color="rgba(255,236,170,0.5)"/>
+      <stop offset="55%" stop-color="rgba(212,162,39,0.18)"/>
+      <stop offset="100%" stop-color="rgba(154,123,26,0)"/>
+    </radialGradient>`
+      : `<linearGradient id="typeTint" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${theme.bodyLight}" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="${theme.bodyDark}" stop-opacity="0.2"/>
+    </linearGradient>`;
+  const secretTintMarkup =
+    style === "secret"
+      ? `<rect width="${FACE_W}" height="${FACE_H}" fill="url(#typeTint)"/>
+  <rect width="${FACE_W}" height="${FACE_H}" fill="url(#goldGleam)"/>`
+      : `<rect width="${FACE_W}" height="${FACE_H}" fill="url(#typeTint)"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${FACE_W}" height="${FACE_H}" viewBox="0 0 ${FACE_W} ${FACE_H}">
@@ -459,16 +487,13 @@ export function buildFullBleedOverlaySvg(
     ${topGradient}
     ${bottomGradient}
     ${tcgFrame.defs}
-    <linearGradient id="typeTint" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${theme.bodyLight}" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="${theme.bodyDark}" stop-opacity="0.2"/>
-    </linearGradient>
+    ${secretTintDefs}
     <radialGradient id="vig" cx="50%" cy="45%" r="75%">
       <stop offset="55%" stop-color="rgba(0,0,0,0)"/>
       <stop offset="100%" stop-color="rgba(0,0,0,0.35)"/>
     </radialGradient>
   </defs>
-  <rect width="${FACE_W}" height="${FACE_H}" fill="url(#typeTint)"/>
+  ${secretTintMarkup}
   <rect width="${FACE_W}" height="${FACE_H}" fill="url(#vig)"/>
   <rect width="${FACE_W}" height="160" fill="url(#top)"/>
   <rect y="${FACE_H - bottomHeight}" width="${FACE_W}" height="${bottomHeight}" fill="url(#bot)"/>

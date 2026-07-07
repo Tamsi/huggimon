@@ -12,7 +12,7 @@ const getCardFaceBase64 = unstable_cache(
     const png = await composeFacePng(card, variant);
     return png.toString("base64");
   },
-  ["huggimon-card-face-v3"],
+  ["huggimon-card-face-v6"],
   { revalidate: 300 },
 );
 

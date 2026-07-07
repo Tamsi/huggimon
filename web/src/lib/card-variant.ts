@@ -13,6 +13,8 @@ export type CardVariant = {
   name: string;
   badge: string;
   dataRarity: string;
+  /** Holo CSS tier — defaults to dataRarity when omitted */
+  holoRarity?: string;
   supertype: "trainer" | "pokémon";
   subtypes: string;
   trainerGallery: boolean;
@@ -178,6 +180,7 @@ const SECRET_GOLD: CardVariant = {
   name: "Secret Gold",
   badge: "★ gold",
   dataRarity: "rare secret",
+  holoRarity: "radiant rare",
   supertype: "trainer",
   subtypes: "supporter",
   trainerGallery: false,
@@ -266,4 +269,8 @@ export function cardBorderTier(variant: CardVariant): CardBorderTier {
 /** CSS root class for holo clipping behaviour */
 export function faceLayoutClass(variant: CardVariant): string {
   return variant.faceTemplate === "trainer" ? "hpk-trainer-face" : "hpk-full-bleed";
+}
+
+export function holoRarityForVariant(variant: CardVariant): string {
+  return variant.holoRarity ?? variant.dataRarity;
 }

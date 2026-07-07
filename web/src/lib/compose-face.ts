@@ -56,6 +56,51 @@ async function trainerArtLayer(avatar: Buffer | null, card: CardData): Promise<B
     .toBuffer();
 }
 
+/** Warm gold wash on the portrait — baked into secret-rare face PNGs. */
+async function applySecretGoldTint(image: Buffer): Promise<Buffer> {
+  const warmGold = await sharp({
+    create: {
+      width: FACE_W,
+      height: FACE_H,
+      channels: 4,
+      background: { r: 201, g: 152, b: 28, alpha: 1 },
+    },
+  })
+    .png()
+    .toBuffer();
+
+  const goldSheen = await sharp({
+    create: {
+      width: FACE_W,
+      height: FACE_H,
+      channels: 4,
+      background: { r: 255, g: 228, b: 140, alpha: 1 },
+    },
+  })
+    .blur(48)
+    .png()
+    .toBuffer();
+
+  return sharp(image)
+    .modulate({
+      brightness: 1.08,
+      saturation: 0.68,
+      hue: 22,
+    })
+    .composite([
+      { input: warmGold, blend: "overlay", top: 0, left: 0 },
+      { input: goldSheen, blend: "soft-light", top: 0, left: 0 },
+    ])
+    .linear(1.05, -(128 * 0.05))
+    .png()
+    .toBuffer();
+}
+
+async function maybeTintForVariant(image: Buffer, variant: CardVariant): Promise<Buffer> {
+  if (variant.faceTemplate !== "secret") return image;
+  return applySecretGoldTint(image);
+}
+
 /**
  * Compose a 660×921 TCG face: user avatar + pre-made template overlay.
  * Trainer tiers paste the avatar above the SVG overlay — librsvg ignores masks
@@ -69,7 +114,9 @@ export async function composeFacePng(card: CardData, variant: CardVariant): Prom
 
   if (isFullBleed) {
     const [base, overlay] = await Promise.all([
-      avatarP.then((avatar) => avatarFullBleed(avatar, card)),
+      avatarP.then(async (avatar) =>
+        maybeTintForVariant(await avatarFullBleed(avatar, card), variant),
+      ),
       overlayP,
     ]);
     return sharp(base)
