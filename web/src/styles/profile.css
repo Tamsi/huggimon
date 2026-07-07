@@ -14,13 +14,6 @@
   gap: 32px;
   align-items: center;
   padding: 36px 28px;
-  border-radius: 20px;
-  background: linear-gradient(165deg, #fffef5 0%, #e8f4ff 55%, #dce9ff 100%);
-  border: 2px solid rgba(59, 76, 202, 0.2);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 0 0 3px var(--hk-yellow),
-    0 24px 48px -24px rgba(27, 42, 109, 0.45);
 }
 
 @media (min-width: 768px) {
@@ -61,7 +54,7 @@
   font-weight: 800;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--hk-blue);
+  color: var(--hk-yellow);
 }
 
 .profile-hero__name {
@@ -70,14 +63,14 @@
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--hk-ink);
+  color: #f4f6ff;
 }
 
 .profile-hero__handle {
   margin: 4px 0 0;
   font-size: 15px;
   font-weight: 600;
-  color: var(--hk-ink-muted);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .profile-hero__tags {
@@ -92,11 +85,11 @@
 .profile-hero__tags li {
   padding: 5px 12px;
   border-radius: 999px;
-  background: #fff;
-  border: 1px solid rgba(59, 76, 202, 0.25);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   font-size: 12px;
   font-weight: 800;
-  color: var(--hk-blue-deep);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .profile-hero__hf-link {
@@ -106,13 +99,13 @@
   margin-top: 4px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--hk-ink-muted) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
   text-decoration: none !important;
   transition: color 0.15s ease;
 }
 
 .profile-hero__hf-link:hover {
-  color: var(--hk-blue) !important;
+  color: var(--hk-yellow) !important;
 }
 
 .profile-hero__hf-link-arrow {
