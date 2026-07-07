@@ -38,6 +38,8 @@ type Options = {
   onInteractEnd?: (delay?: number) => void;
   onOpen?: () => void;
   sizeMode?: PopoverSizeMode;
+  /** Extra upward shift to leave room for the popover link (px) */
+  linkReservePx?: number;
 };
 
 export function useBinderPopover({
@@ -46,6 +48,7 @@ export function useBinderPopover({
   onInteractEnd,
   onOpen,
   sizeMode = "pocket",
+  linkReservePx,
 }: Options) {
   const binderActive = useBinderActiveCard();
   const [localActiveKey, setLocalActiveKey] = useState<string | null>(null);
@@ -63,20 +66,23 @@ export function useBinderPopover({
   }));
 
   const setCenter = useCallback(
-    (scale: number) => {
+    (_scale: number) => {
       const anchor = measurePopoverAnchor(anchorRef, true);
       if (!anchor) return;
 
-      const scaledH = anchor.height * scale;
-      const lift = (scaledH - anchor.height) / 2 + LINK_RESERVE_PX / 2;
+      const reserve =
+        linkReservePx ??
+        (sizeMode === "hero" ? 0 : LINK_RESERVE_PX / 2);
+      const centerX = anchor.rectLeft + anchor.width / 2;
+      const centerY = anchor.rectTop + anchor.height / 2;
 
       popApi.start({
-        tx: round(window.innerWidth / 2 - anchor.left),
-        ty: round(window.innerHeight / 2 - anchor.top - anchor.height / 2 - lift),
+        tx: round(window.innerWidth / 2 - centerX),
+        ty: round(window.innerHeight / 2 - centerY - reserve),
         config: SPRING_POPOVER,
       });
     },
-    [anchorRef, popApi],
+    [anchorRef, popApi, linkReservePx, sizeMode],
   );
 
   const retreat = useCallback(() => {

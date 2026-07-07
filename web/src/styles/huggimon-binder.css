@@ -695,6 +695,14 @@
 
 /* ── Mobile: one 3×3 page at a time ── */
 @media (max-width: 900px) {
+  .tcg-binder-stage {
+    perspective: none;
+  }
+
+  .tcg-binder--mobile {
+    transform-style: flat;
+  }
+
   .tcg-binder--open.tcg-binder--mobile {
     width: min(500px, 96vw);
   }
@@ -712,13 +720,19 @@
   }
 
   .tcg-binder--mobile .tcg-binder__body {
+    flex-direction: column;
     border-radius: 16px;
+    transform: none;
+    transform-style: flat;
   }
 
   .tcg-binder__mobile-view {
-    flex: 1;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
     position: relative;
-    min-width: 0;
     animation: tcg-mobile-page-in 0.28s ease;
   }
 
@@ -727,6 +741,11 @@
   }
 
   .tcg-binder--mobile .tcg-page--single {
+    position: relative;
+    inset: auto;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
     border-radius: 14px;
     padding: 12px;
     box-shadow:
@@ -741,11 +760,48 @@
   .tcg-binder--mobile .tcg-page__grid {
     gap: clamp(7px, 1.8vw, 11px);
     padding: 8px;
+    min-height: 0;
+  }
+
+  .tcg-binder--mobile .tcg-pocket,
+  .tcg-binder--mobile .tcg-pocket__plastic,
+  .tcg-binder--mobile .tcg-pocket__well,
+  .tcg-binder--mobile .tcg-pocket__card,
+  .tcg-binder--mobile .tcg-pocket__trainer-anchor,
+  .tcg-binder--mobile .tcg-pocket__trainer-hit,
+  .tcg-binder--mobile .hpkt-tilt,
+  .tcg-binder--mobile .tcg-pocket__card .hpkt-card,
+  .tcg-binder--mobile .tcg-pocket__card .card.hpk-pocket {
+    min-height: 0;
+  }
+
+  .tcg-binder--mobile .tcg-pocket__card .card.hpk-pocket .card__rotator,
+  .tcg-binder--mobile .hpkt-frame {
+    min-height: 0;
+  }
+
+  .tcg-binder--mobile .tcg-pocket__card .card.hpk-pocket .card__rotator {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .tcg-binder--mobile .tcg-pocket__card .card.hpk-pocket .card__front,
+  .tcg-binder--mobile .tcg-pocket__card .card.hpk-pocket .card__front img {
+    height: 100%;
+  }
+
+  .tcg-binder--mobile .tcg-pocket__card .card.hpk-pocket .card__front img {
+    object-fit: cover;
+  }
+
+  .tcg-binder--mobile .hpkt-card {
+    height: 100%;
   }
 
   .tcg-binder--mobile .tcg-page__head {
     margin-bottom: 8px;
     padding-bottom: 6px;
+    flex-shrink: 0;
   }
 
   .tcg-binder--mobile .tcg-page__num,

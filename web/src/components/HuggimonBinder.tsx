@@ -17,7 +17,15 @@ type Props = {
   initialPage: BinderPageData;
 };
 
-function PocketSlot({ slot, binderOpen }: { slot: BinderSlot; binderOpen: boolean }) {
+function PocketSlot({
+  slot,
+  binderOpen,
+  eagerLoad,
+}: {
+  slot: BinderSlot;
+  binderOpen: boolean;
+  eagerLoad?: boolean;
+}) {
   return (
     <div
       className={`tcg-pocket${slot.kind !== "empty" ? " tcg-pocket--filled" : ""}`}
@@ -25,7 +33,11 @@ function PocketSlot({ slot, binderOpen }: { slot: BinderSlot; binderOpen: boolea
       <div className="tcg-pocket__plastic">
         <div className="tcg-pocket__well">
           {slot.kind === "follower" ? (
-            <BinderPocketCard follower={slot.follower} active={binderOpen} />
+            <BinderPocketCard
+              follower={slot.follower}
+              active={binderOpen}
+              eager={eagerLoad}
+            />
           ) : slot.kind === "trainer" ? (
             <TrainerPocketCard card={slot.card} binderOpen={binderOpen} />
           ) : (
@@ -38,7 +50,15 @@ function PocketSlot({ slot, binderOpen }: { slot: BinderSlot; binderOpen: boolea
   );
 }
 
-function PocketGrid({ slots, binderOpen }: { slots: BinderSlot[]; binderOpen: boolean }) {
+function PocketGrid({
+  slots,
+  binderOpen,
+  eagerLoad,
+}: {
+  slots: BinderSlot[];
+  binderOpen: boolean;
+  eagerLoad?: boolean;
+}) {
   return (
     <div className="tcg-page__grid">
       {slots.map((slot, i) => (
@@ -52,6 +72,7 @@ function PocketGrid({ slots, binderOpen }: { slots: BinderSlot[]; binderOpen: bo
           }
           slot={slot}
           binderOpen={binderOpen}
+          eagerLoad={eagerLoad}
         />
       ))}
     </div>
@@ -64,12 +85,14 @@ function BinderPage({
   totalPages,
   binderOpen,
   single = false,
+  eagerLoad = false,
 }: {
   data: BinderPageData;
   side: "left" | "right";
   totalPages: number;
   binderOpen: boolean;
   single?: boolean;
+  eagerLoad?: boolean;
 }) {
   const statsLine =
     data.totalFollowers > 0 || data.totalLikes > 0
@@ -87,7 +110,7 @@ function BinderPage({
         <span className="tcg-page__label">{data.label}</span>
         <span className="tcg-page__stats">{statsLine}</span>
       </header>
-      <PocketGrid slots={data.slots} binderOpen={binderOpen} />
+      <PocketGrid slots={data.slots} binderOpen={binderOpen} eagerLoad={eagerLoad} />
     </div>
   );
 }
@@ -105,11 +128,13 @@ function PaneContent({
   side,
   totalPages,
   binderOpen,
+  eagerLoad,
 }: {
   data: BinderPageData | null;
   side: "left" | "right";
   totalPages: number;
   binderOpen: boolean;
+  eagerLoad?: boolean;
 }) {
   if (!data) return <InsideCover side={side} />;
   return (
@@ -118,6 +143,7 @@ function PaneContent({
       side={side}
       totalPages={totalPages}
       binderOpen={binderOpen}
+      eagerLoad={eagerLoad}
     />
   );
 }
@@ -216,6 +242,7 @@ export function HuggimonBinder({ card, initialPage }: Props) {
                     totalPages={totalPages}
                     binderOpen={interactive}
                     single
+                    eagerLoad
                   />
                 </div>
               ) : (

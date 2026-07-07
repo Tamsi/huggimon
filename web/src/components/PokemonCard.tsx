@@ -147,6 +147,7 @@ export function PokemonCard({
       api.start({ opacity: 1, config: SPRING_INTERACT });
     },
     sizeMode: expandOnTap ? "hero" : "pocket",
+    linkReservePx: expandOnTap ? (pageUrl ? 28 : 0) : undefined,
   });
 
   const interactEnd = useCallback(

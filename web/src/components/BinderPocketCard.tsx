@@ -10,9 +10,11 @@ type Props = {
   follower: FollowerRef;
   /** Binder must be open before cards start loading */
   active: boolean;
+  /** Skip viewport lazy-load (mobile single-page binder) */
+  eager?: boolean;
 };
 
-export function BinderPocketCard({ follower, active }: Props) {
+export function BinderPocketCard({ follower, active, eager = false }: Props) {
   const { ref, inView } = useInView<HTMLDivElement>({
     rootMargin: "48px",
     triggerOnce: true,
@@ -21,7 +23,7 @@ export function BinderPocketCard({ follower, active }: Props) {
   const [payload, setPayload] = useState<CardApiPayload | null>(null);
   const [failed, setFailed] = useState(false);
 
-  const shouldLoad = active && inView;
+  const shouldLoad = active && (eager || inView);
 
   useEffect(() => {
     if (!shouldLoad || payload || failed) return;

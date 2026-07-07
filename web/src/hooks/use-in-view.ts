@@ -25,6 +25,19 @@ export function useInView<T extends Element = Element>({
     const node = ref.current;
     if (!node) return;
 
+    const syncVisible = () => {
+      const rect = node.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) return;
+      if (
+        rect.bottom > 0 &&
+        rect.right > 0 &&
+        rect.top < window.innerHeight &&
+        rect.left < window.innerWidth
+      ) {
+        setInView(true);
+      }
+    };
+
     if (typeof IntersectionObserver === "undefined") {
       setInView(true);
       return;
@@ -39,11 +52,19 @@ export function useInView<T extends Element = Element>({
           setInView(false);
         }
       },
-      { rootMargin, threshold: 0.05 },
+      { rootMargin, threshold: 0.01 },
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+    syncVisible();
+    const raf = requestAnimationFrame(syncVisible);
+    const timer = window.setTimeout(syncVisible, 150);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
   }, [enabled, rootMargin, triggerOnce]);
 
   return { ref, inView: enabled && inView };
