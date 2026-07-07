@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BinderPopoverPortal } from "@/components/BinderPopoverPortal";
 import { useBinderActiveCard } from "@/contexts/binder-active-card";
 import { useBinderPopover } from "@/hooks/use-binder-popover";
+import { useDeviceCardTilt } from "@/hooks/use-device-card-tilt";
 import { usePopupAnchor } from "@/hooks/use-popup-anchor";
 import type { CardVariant } from "@/lib/card-variant";
 import { faceLayoutClass, holoRarityForVariant, wireNumber, wireSubtypes } from "@/lib/card-variant";
@@ -31,6 +32,7 @@ type Props = {
   imageLoading?: "eager" | "lazy";
   /** Homepage stack — holo tilt only, no flip / card back */
   preview?: boolean;
+  gyroTilt?: boolean;
 };
 
 function seedFromUsername(username: string): { x: number; y: number } {
@@ -51,6 +53,7 @@ export function PokemonCard({
   imagePriority = pocket ? "low" : "high",
   imageLoading = pocket ? "lazy" : "eager",
   preview = false,
+  gyroTilt = !pocket,
 }: Props) {
   const faceImage = faceSrc ?? faceUrl;
   const binderActive = useBinderActiveCard();
@@ -174,8 +177,8 @@ export function PokemonCard({
     else toggleFlip();
   }, [preview, pocket, popover, toggleFlip]);
 
-  const onPointerMoveHandler = useCallback(
-    (e: React.PointerEvent<HTMLElement>) => {
+  const applyInteractFromPercent = useCallback(
+    (px: number, py: number) => {
       if (
         pocket &&
         binderActive?.activeKey &&
@@ -184,9 +187,6 @@ export function PokemonCard({
         return;
       }
 
-      const rect = e.currentTarget.getBoundingClientRect();
-      const px = clamp(round((100 / rect.width) * (e.clientX - rect.left)), 0, 100);
-      const py = clamp(round((100 / rect.height) * (e.clientY - rect.top)), 0, 100);
       const centerX = px - 50;
       const centerY = py - 50;
       setInteracting(true);
@@ -198,6 +198,32 @@ export function PokemonCard({
     },
     [setSprings, pocket, binderActive?.activeKey, card.username],
   );
+
+  const onPointerMoveHandler = useCallback(
+    (e: React.PointerEvent<HTMLElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const px = clamp(round((100 / rect.width) * (e.clientX - rect.left)), 0, 100);
+      const py = clamp(round((100 / rect.height) * (e.clientY - rect.top)), 0, 100);
+      applyInteractFromPercent(px, py);
+    },
+    [applyInteractFromPercent],
+  );
+
+  const deviceTilt = useDeviceCardTilt({
+    enabled: gyroTilt && !loading,
+    onInteract: applyInteractFromPercent,
+  });
+
+  const onRotatorPointerDown = useCallback(async () => {
+    deviceTilt.onPointerDown();
+    if (deviceTilt.needsPermissionPrompt) {
+      await deviceTilt.prepareOnGesture();
+    }
+  }, [deviceTilt]);
+
+  const onRotatorPointerUp = useCallback(() => {
+    deviceTilt.onPointerUp();
+  }, [deviceTilt]);
 
   useEffect(() => {
     if (!showcase || variant.dataRarity === "common") return;
@@ -326,6 +352,9 @@ export function PokemonCard({
         {preview ? (
           <div
             className="card__rotator"
+            onPointerDown={onRotatorPointerDown}
+            onPointerUp={onRotatorPointerUp}
+            onPointerCancel={onRotatorPointerUp}
             onPointerMove={onPointerMoveHandler}
             onPointerLeave={() => interactEnd()}
           >
@@ -351,6 +380,9 @@ export function PokemonCard({
             aria-label={`Trainer card for ${card.displayName}`}
             aria-pressed={active}
             onClick={toggleActive}
+            onPointerDown={onRotatorPointerDown}
+            onPointerUp={onRotatorPointerUp}
+            onPointerCancel={onRotatorPointerUp}
             onPointerMove={onPointerMoveHandler}
             onPointerLeave={() => interactEnd()}
             onBlur={() => interactEnd(0)}

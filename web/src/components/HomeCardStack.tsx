@@ -33,6 +33,7 @@ export function HomeCardStack({ cards }: Props) {
             faceUrl={item.faceUrl}
             faceSrc={item.faceInline}
             preview
+            gyroTilt={isFront}
             showcase={isFront}
             introHolo={isFront}
             imagePriority={isFront ? "high" : "low"}
