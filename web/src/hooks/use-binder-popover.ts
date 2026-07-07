@@ -1,7 +1,7 @@
 "use client";
 
 import { useSpring } from "@react-spring/web";
-import { useCallback, useEffect, useRef, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { useBinderActiveCard } from "@/contexts/binder-active-card";
 import { measurePopoverAnchor } from "@/lib/popover-anchor";
 import { round } from "@/lib/math";
@@ -32,8 +32,11 @@ export function useBinderPopover({
   onOpen,
 }: Options) {
   const binderActive = useBinderActiveCard();
+  const [localActiveKey, setLocalActiveKey] = useState<string | null>(null);
   const firstPopRef = useRef(true);
-  const active = binderActive?.activeKey === id;
+  const active = binderActive
+    ? binderActive.activeKey === id
+    : localActiveKey === id;
 
   const [popSprings, popApi] = useSpring(() => ({
     scale: 1,
@@ -97,12 +100,14 @@ export function useBinderPopover({
   }, [anchorRef, popApi, setCenter, onOpen]);
 
   const close = useCallback(() => {
-    binderActive?.close();
+    if (binderActive) binderActive.close();
+    else setLocalActiveKey(null);
     retreat();
   }, [binderActive, retreat]);
 
   const open = useCallback(() => {
-    binderActive?.open(id);
+    if (binderActive) binderActive.open(id);
+    else setLocalActiveKey(id);
     popover();
   }, [binderActive, id, popover]);
 
@@ -112,8 +117,10 @@ export function useBinderPopover({
   }, [active, close, open]);
 
   useEffect(() => {
-    if (!binderActive) return;
-    if (binderActive.activeKey !== id) {
+    const isActive = binderActive
+      ? binderActive.activeKey === id
+      : localActiveKey === id;
+    if (!isActive) {
       popApi.start({
         scale: 1,
         tx: 0,
@@ -122,7 +129,7 @@ export function useBinderPopover({
         config: SPRING_POPOVER,
       });
     }
-  }, [binderActive, id, popApi]);
+  }, [binderActive, binderActive?.activeKey, localActiveKey, id, popApi]);
 
   useEffect(() => {
     if (!active) return;

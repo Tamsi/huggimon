@@ -1074,6 +1074,11 @@
   transform: rotate(-1.5deg) translate(0, -4px) scale(1.02) !important;
 }
 
+.hk-home-stack__layer .card.hpk-pocket.active.hpk-pocket--in-pocket {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .hk-home-features {
   max-width: 1100px;
   width: 100%;

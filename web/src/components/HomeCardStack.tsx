@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PokemonCard } from "@/components/PokemonCard";
+import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import type { HomeShowcaseCard } from "@/lib/home-showcase";
 
 type Props = {
@@ -15,6 +16,8 @@ const LAYER_STYLES = [
 ] as const;
 
 export function HomeCardStack({ cards }: Props) {
+  const isCoarsePointer = useCoarsePointer();
+
   if (cards.length === 0) return null;
 
   const layers = cards.slice(0, 3);
@@ -33,6 +36,8 @@ export function HomeCardStack({ cards }: Props) {
             faceUrl={item.faceUrl}
             faceSrc={item.faceInline}
             preview
+            tapToExpand={isFront}
+            pageUrl={isFront ? profileHref : undefined}
             gyroTilt={isFront}
             showcase={isFront}
             introHolo={isFront}
@@ -50,7 +55,7 @@ export function HomeCardStack({ cards }: Props) {
               transform: `rotate(${layer.rotate}deg) translate(${layer.x}px, ${layer.y}px) scale(${layer.scale})`,
             }}
           >
-            {isFront ? (
+            {isFront && !isCoarsePointer ? (
               <Link
                 href={profileHref}
                 className="hk-home-stack__link"

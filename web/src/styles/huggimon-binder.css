@@ -693,6 +693,78 @@
   }
 }
 
+/* ── Mobile: one 3×3 page at a time ── */
+@media (max-width: 900px) {
+  .tcg-binder--open.tcg-binder--mobile {
+    width: min(500px, 96vw);
+  }
+
+  .tcg-binder-wrap:has(.tcg-binder--mobile) .tcg-binder__controls {
+    width: min(500px, 96vw);
+    gap: 14px;
+    padding: 10px 12px;
+  }
+
+  .tcg-binder-wrap:has(.tcg-binder--mobile) .tcg-binder__nav {
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+  }
+
+  .tcg-binder--mobile .tcg-binder__body {
+    border-radius: 16px;
+  }
+
+  .tcg-binder__mobile-view {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+    animation: tcg-mobile-page-in 0.28s ease;
+  }
+
+  .tcg-binder__mobile-view--loading {
+    opacity: 0.78;
+  }
+
+  .tcg-binder--mobile .tcg-page--single {
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      inset 0 0 24px rgba(0, 0, 0, 0.35);
+  }
+
+  .tcg-binder--mobile .tcg-page--single::before {
+    display: none;
+  }
+
+  .tcg-binder--mobile .tcg-page__grid {
+    gap: clamp(7px, 1.8vw, 11px);
+    padding: 8px;
+  }
+
+  .tcg-binder--mobile .tcg-page__head {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+  }
+
+  .tcg-binder--mobile .tcg-page__num,
+  .tcg-binder--mobile .tcg-page__label {
+    font-size: 8px;
+  }
+}
+
+@keyframes tcg-mobile-page-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tcg-binder,
   .tcg-binder__cover {
@@ -700,6 +772,10 @@
   }
 
   .tcg-binder__cover-cta {
+    animation: none;
+  }
+
+  .tcg-binder__mobile-view {
     animation: none;
   }
 }

@@ -34,6 +34,7 @@ export function ProfileHero({
           faceSrc={faceInline}
           imagePriority="high"
           imageLoading="eager"
+          tapToExpand
         />
       </div>
 

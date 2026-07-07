@@ -8,6 +8,7 @@ import { TrainerPocketCard } from "@/components/TrainerPocketCard";
 import { BinderActiveCardProvider } from "@/contexts/binder-active-card";
 import { useBinderOpen } from "@/hooks/use-binder-open";
 import { useBinderSpread } from "@/hooks/use-binder-spread";
+import { useMobileBinderView } from "@/hooks/use-mobile-binder-view";
 import type { BinderPageData, BinderSlot } from "@/lib/binder-fetcher";
 import type { CardData } from "@/lib/scoring";
 
@@ -62,11 +63,13 @@ function BinderPage({
   side,
   totalPages,
   binderOpen,
+  single = false,
 }: {
   data: BinderPageData;
   side: "left" | "right";
   totalPages: number;
   binderOpen: boolean;
+  single?: boolean;
 }) {
   const statsLine =
     data.totalFollowers > 0 || data.totalLikes > 0
@@ -74,7 +77,9 @@ function BinderPage({
       : "Empty collection";
 
   return (
-    <div className={`tcg-page tcg-page--${side}`}>
+    <div
+      className={`tcg-page tcg-page--${side}${single ? " tcg-page--single" : ""}`}
+    >
       <header className="tcg-page__head">
         <span className="tcg-page__num">
           Page {data.pageIndex + 1}/{totalPages}
@@ -120,17 +125,22 @@ function PaneContent({
 const GUTTER_PX = 0;
 
 export function HuggimonBinder({ card, initialPage }: Props) {
+  const mobileView = useMobileBinderView();
   const { opened, opening, isVisible, open } = useBinderOpen();
   const spreadState = useBinderSpread({
     username: card.username,
     initialPage,
     opened,
+    singlePage: mobileView,
   });
 
   const {
     spread,
     maxSpread,
     totalPages,
+    pageIndex,
+    maxPageIndex,
+    currentPage,
     turning,
     loading,
     rotateY,
@@ -142,6 +152,7 @@ export function HuggimonBinder({ card, initialPage }: Props) {
   } = spreadState;
 
   const interactive = opened && turning === null && !loading;
+  const activePage = currentPage ?? initialPage;
 
   const sheetStyle = {
     transform: to(rotateY, (ry) => {
@@ -157,6 +168,7 @@ export function HuggimonBinder({ card, initialPage }: Props) {
     opening ? "tcg-binder--opening" : "",
     opened ? "tcg-binder--open" : "",
     turning ? "tcg-binder--turning" : "",
+    mobileView ? "tcg-binder--mobile" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -193,43 +205,63 @@ export function HuggimonBinder({ card, initialPage }: Props) {
 
           <div className="tcg-binder__body">
             <BinderActiveCardProvider>
-              <div
-                className="tcg-binder__spread"
-                style={{ "--tcg-gutter": `${GUTTER_PX}px` } as CSSProperties}
-              >
-                <div className="tcg-binder__pane tcg-binder__pane--left">
-                  {spread > 0 && (
-                    <div className="tcg-binder__stack-edge tcg-binder__stack-edge--left" aria-hidden />
-                  )}
-                  <PaneContent
-                    data={leftPage}
-                    side="left"
-                    totalPages={totalPages}
-                    binderOpen={interactive}
-                  />
-                </div>
-
-                <div className="tcg-binder__gutter" aria-hidden />
-
+              {mobileView ? (
                 <div
-                  className={`tcg-binder__pane tcg-binder__pane--right${turning === "next" ? " tcg-binder__pane--under-turn" : ""}`}
+                  key={pageIndex}
+                  className={`tcg-binder__mobile-view${loading ? " tcg-binder__mobile-view--loading" : ""}`}
                 >
-                  {spread < maxSpread && (
-                    <div className="tcg-binder__stack-edge tcg-binder__stack-edge--right" aria-hidden />
-                  )}
-                  <PaneContent
-                    data={rightPage}
+                  <BinderPage
+                    data={activePage}
                     side="right"
                     totalPages={totalPages}
                     binderOpen={interactive}
+                    single
                   />
                 </div>
-
-                <animated.div
-                  className={`tcg-binder__sheet${turning ? " tcg-binder__sheet--live" : ""}`}
-                  style={sheetStyle}
-                  aria-hidden={!turning}
+              ) : (
+                <div
+                  className="tcg-binder__spread"
+                  style={{ "--tcg-gutter": `${GUTTER_PX}px` } as CSSProperties}
                 >
+                  <div className="tcg-binder__pane tcg-binder__pane--left">
+                    {spread > 0 && (
+                      <div
+                        className="tcg-binder__stack-edge tcg-binder__stack-edge--left"
+                        aria-hidden
+                      />
+                    )}
+                    <PaneContent
+                      data={leftPage}
+                      side="left"
+                      totalPages={totalPages}
+                      binderOpen={interactive}
+                    />
+                  </div>
+
+                  <div className="tcg-binder__gutter" aria-hidden />
+
+                  <div
+                    className={`tcg-binder__pane tcg-binder__pane--right${turning === "next" ? " tcg-binder__pane--under-turn" : ""}`}
+                  >
+                    {spread < maxSpread && (
+                      <div
+                        className="tcg-binder__stack-edge tcg-binder__stack-edge--right"
+                        aria-hidden
+                      />
+                    )}
+                    <PaneContent
+                      data={rightPage}
+                      side="right"
+                      totalPages={totalPages}
+                      binderOpen={interactive}
+                    />
+                  </div>
+
+                  <animated.div
+                    className={`tcg-binder__sheet${turning ? " tcg-binder__sheet--live" : ""}`}
+                    style={sheetStyle}
+                    aria-hidden={!turning}
+                  >
                     <div className="tcg-binder__sheet-face tcg-binder__sheet-face--front">
                       <PaneContent
                         data={sheetFront}
@@ -247,7 +279,8 @@ export function HuggimonBinder({ card, initialPage }: Props) {
                       />
                     </div>
                   </animated.div>
-              </div>
+                </div>
+              )}
             </BinderActiveCardProvider>
           </div>
         </div>
@@ -259,13 +292,21 @@ export function HuggimonBinder({ card, initialPage }: Props) {
             type="button"
             className="tcg-binder__nav"
             onClick={() => void turn("prev")}
-            disabled={spread === 0 || turning !== null || loading}
-            aria-label="Previous pages"
+            disabled={
+              mobileView
+                ? pageIndex === 0 || loading
+                : spread === 0 || turning !== null || loading
+            }
+            aria-label={mobileView ? "Previous page" : "Previous pages"}
           >
             ‹
           </button>
 
-          {maxSpread + 1 <= 12 ? (
+          {mobileView ? (
+            <span className="tcg-binder__page-indicator" aria-live="polite">
+              {pageIndex + 1} / {totalPages}
+            </span>
+          ) : maxSpread + 1 <= 12 ? (
             <div className="tcg-binder__dots" aria-hidden>
               {Array.from({ length: maxSpread + 1 }, (_, i) => (
                 <span
@@ -284,8 +325,12 @@ export function HuggimonBinder({ card, initialPage }: Props) {
             type="button"
             className="tcg-binder__nav"
             onClick={() => void turn("next")}
-            disabled={spread === maxSpread || turning !== null || loading}
-            aria-label="Next pages"
+            disabled={
+              mobileView
+                ? pageIndex >= maxPageIndex || loading
+                : spread === maxSpread || turning !== null || loading
+            }
+            aria-label={mobileView ? "Next page" : "Next pages"}
           >
             ›
           </button>

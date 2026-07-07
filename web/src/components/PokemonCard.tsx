@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BinderPopoverPortal } from "@/components/BinderPopoverPortal";
 import { useBinderActiveCard } from "@/contexts/binder-active-card";
 import { useBinderPopover } from "@/hooks/use-binder-popover";
+import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { useDeviceCardTilt } from "@/hooks/use-device-card-tilt";
 import { usePopupAnchor } from "@/hooks/use-popup-anchor";
 import type { CardVariant } from "@/lib/card-variant";
@@ -32,6 +33,8 @@ type Props = {
   imageLoading?: "eager" | "lazy";
   /** Homepage stack — holo tilt only, no flip / card back */
   preview?: boolean;
+  /** On touch devices, tap to zoom like binder pocket cards */
+  tapToExpand?: boolean;
   gyroTilt?: boolean;
 };
 
@@ -53,9 +56,13 @@ export function PokemonCard({
   imagePriority = pocket ? "low" : "high",
   imageLoading = pocket ? "lazy" : "eager",
   preview = false,
+  tapToExpand = false,
   gyroTilt = !pocket,
 }: Props) {
   const faceImage = faceSrc ?? faceUrl;
+  const isCoarsePointer = useCoarsePointer();
+  const expandOnTap = tapToExpand && isCoarsePointer && !pocket;
+  const usesPopover = pocket || expandOnTap;
   const binderActive = useBinderActiveCard();
   const cardRef = useRef<HTMLDivElement>(null);
   const portalCardRef = useRef<HTMLDivElement>(null);
@@ -129,12 +136,24 @@ export function PokemonCard({
     [api],
   );
 
+  const onInteractEndRef = useRef<(delay?: number) => void>(() => {});
+
+  const popover = useBinderPopover({
+    id: card.username,
+    anchorRef: cardRef,
+    onInteractEnd: (delay) => onInteractEndRef.current(delay),
+    onOpen: () => {
+      setInteracting(true);
+      api.start({ opacity: 1, config: SPRING_INTERACT });
+    },
+  });
+
   const interactEnd = useCallback(
     (delay = 500) => {
-      if (pocket && binderActive?.activeKey === card.username) return;
+      if (usesPopover && popover.active) return;
       setInteracting(false);
       window.setTimeout(() => {
-        if (pocket && binderActive?.activeKey === card.username) return;
+        if (usesPopover && popover.active) return;
         setSprings(
           { x: 55, y: 42 },
           { x: 0, y: 0 },
@@ -142,26 +161,18 @@ export function PokemonCard({
         );
       }, delay);
     },
-    [setSprings, idleOpacity, pocket, binderActive?.activeKey, card.username],
+    [setSprings, idleOpacity, usesPopover, popover.active],
   );
 
-  const popover = useBinderPopover({
-    id: card.username,
-    anchorRef: cardRef,
-    onInteractEnd: interactEnd,
-    onOpen: () => {
-      setInteracting(true);
-      api.start({ opacity: 1, config: SPRING_INTERACT });
-    },
-  });
+  onInteractEndRef.current = interactEnd;
 
-  const active = pocket ? popover.active : flipActive;
+  const active = usesPopover ? popover.active : flipActive;
 
   useEffect(() => {
-    if (!pocket || !popover.active) return;
+    if (!usesPopover || !popover.active) return;
     setInteracting(true);
     api.start({ opacity: 1, config: SPRING_INTERACT });
-  }, [pocket, popover.active, api]);
+  }, [usesPopover, popover.active, api]);
 
   const toggleFlip = useCallback(() => {
     setFlipActive((wasActive) => {
@@ -172,10 +183,10 @@ export function PokemonCard({
   }, [api]);
 
   const toggleActive = useCallback(() => {
-    if (preview) return;
-    if (pocket) popover.toggle();
+    if (preview && !expandOnTap) return;
+    if (usesPopover) popover.toggle();
     else toggleFlip();
-  }, [preview, pocket, popover, toggleFlip]);
+  }, [preview, expandOnTap, usesPopover, popover, toggleFlip]);
 
   const applyInteractFromPercent = useCallback(
     (px: number, py: number) => {
@@ -210,7 +221,8 @@ export function PokemonCard({
   );
 
   const deviceTilt = useDeviceCardTilt({
-    enabled: gyroTilt && !loading,
+    enabled:
+      gyroTilt && !loading && (!tapToExpand || !isCoarsePointer || popover.active),
     onInteract: applyInteractFromPercent,
   });
 
@@ -224,6 +236,11 @@ export function PokemonCard({
   const onRotatorPointerUp = useCallback(() => {
     deviceTilt.onPointerUp();
   }, [deviceTilt]);
+
+  useEffect(() => {
+    if (!expandOnTap || !popover.active) return;
+    void deviceTilt.prepareOnGesture();
+  }, [expandOnTap, popover.active, deviceTilt]);
 
   useEffect(() => {
     if (!showcase || variant.dataRarity === "common") return;
@@ -286,7 +303,7 @@ export function PokemonCard({
 
   const { popSprings } = popover;
 
-  const portaledStyle = pocket
+  const portaledStyle = usesPopover
     ? {
         ...staticStyles,
         ...holoStyle,
@@ -307,8 +324,8 @@ export function PokemonCard({
         "--rotate-x": to([springs.tiltX, springs.flipY], (tx, fy) => `${tx + fy}deg`),
       };
 
-  const pocketPlaceholderStyle =
-    pocket && active
+  const anchorPlaceholderStyle =
+    usesPopover && active
       ? {
           ...staticStyles,
           ...holoStyle,
@@ -324,7 +341,7 @@ export function PokemonCard({
     "interactive",
     layoutClass,
     typeClass,
-    pocket ? "hpk-pocket" : "",
+    pocket || (expandOnTap && active) ? "hpk-pocket" : "",
     active ? "active" : "",
     interacting ? "interacting" : "",
     loading ? "loading" : "",
@@ -333,61 +350,62 @@ export function PokemonCard({
     .filter(Boolean)
     .join(" ");
 
-  const layoutAnchor = usePopupAnchor(cardRef, Boolean(pocket && popover.active), true);
+  const layoutAnchor = usePopupAnchor(cardRef, Boolean(usesPopover && popover.active), true);
 
-  const renderCard = (inPocket: boolean) => (
+  const rotatorPointerHandlers = {
+    onPointerDown: onRotatorPointerDown,
+    onPointerUp: onRotatorPointerUp,
+    onPointerCancel: onRotatorPointerUp,
+    onPointerMove: onPointerMoveHandler,
+    onPointerLeave: () => interactEnd(),
+  };
+
+  const renderCardFace = () => (
+    <div className="card__front" style={{ ...staticStyles, ...foilStyles }}>
+      <img
+        src={faceImage}
+        alt={`Front of ${card.displayName} trainer card`}
+        width={660}
+        height={921}
+        loading={imageLoading}
+        decoding={faceSrc ? "sync" : "async"}
+        fetchPriority={imagePriority}
+        onLoad={() => setLoading(false)}
+      />
+      <div className="card__shine" />
+      <div className="card__glare" />
+    </div>
+  );
+
+  const renderCard = (inAnchor: boolean) => (
     <animated.div
-      ref={inPocket ? cardRef : portalCardRef}
-      className={`${classNames}${inPocket && active ? " hpk-pocket--in-pocket" : ""}`}
+      ref={inAnchor ? cardRef : portalCardRef}
+      className={`${classNames}${inAnchor && active && usesPopover ? " hpk-pocket--in-pocket" : ""}`}
       data-rarity={holoRarityForVariant(variant)}
       data-supertype={variant.supertype}
       data-subtypes={subtypes}
       data-trainer-gallery={variant.trainerGallery ? "true" : "false"}
       data-set="huggimon"
       data-number={number}
-      style={inPocket ? pocketPlaceholderStyle : portaledStyle}
-      aria-hidden={inPocket && active ? true : undefined}
+      style={inAnchor ? anchorPlaceholderStyle : portaledStyle}
+      aria-hidden={inAnchor && active && usesPopover ? true : undefined}
     >
       <div className="card__translater">
-        {preview ? (
-          <div
-            className="card__rotator"
-            onPointerDown={onRotatorPointerDown}
-            onPointerUp={onRotatorPointerUp}
-            onPointerCancel={onRotatorPointerUp}
-            onPointerMove={onPointerMoveHandler}
-            onPointerLeave={() => interactEnd()}
-          >
-            <div className="card__front" style={{ ...staticStyles, ...foilStyles }}>
-              <img
-                src={faceImage}
-                alt={`Front of ${card.displayName} trainer card`}
-                width={660}
-                height={921}
-                loading={imageLoading}
-                decoding={faceSrc ? "sync" : "async"}
-                fetchPriority={imagePriority}
-                onLoad={() => setLoading(false)}
-              />
-              <div className="card__shine" />
-              <div className="card__glare" />
-            </div>
+        {preview && !expandOnTap ? (
+          <div className="card__rotator" {...rotatorPointerHandlers}>
+            {renderCardFace()}
           </div>
         ) : (
           <button
             type="button"
             className="card__rotator"
             aria-label={`Trainer card for ${card.displayName}`}
-            aria-pressed={active}
+            aria-pressed={usesPopover || expandOnTap ? active : flipActive}
             onClick={toggleActive}
-            onPointerDown={onRotatorPointerDown}
-            onPointerUp={onRotatorPointerUp}
-            onPointerCancel={onRotatorPointerUp}
-            onPointerMove={onPointerMoveHandler}
-            onPointerLeave={() => interactEnd()}
-            onBlur={() => interactEnd(0)}
+            {...rotatorPointerHandlers}
+            onBlur={preview ? undefined : () => interactEnd(0)}
           >
-            {!pocket && (
+            {!pocket && !preview && (
               <img
                 className="card__back"
                 src={CARD_BACK}
@@ -397,20 +415,7 @@ export function PokemonCard({
                 height={921}
               />
             )}
-            <div className="card__front" style={{ ...staticStyles, ...foilStyles }}>
-              <img
-                src={faceImage}
-                alt={`Front of ${card.displayName} trainer card`}
-                width={660}
-                height={921}
-                loading={imageLoading}
-                decoding={faceSrc ? "sync" : "async"}
-                fetchPriority={imagePriority}
-                onLoad={() => setLoading(false)}
-              />
-              <div className="card__shine" />
-              <div className="card__glare" />
-            </div>
+            {renderCardFace()}
           </button>
         )}
       </div>
@@ -419,7 +424,7 @@ export function PokemonCard({
 
   return (
     <>
-      {pocket && (
+      {usesPopover && (
         <BinderPopoverPortal
           open={popover.active}
           anchorRef={portalCardRef}
