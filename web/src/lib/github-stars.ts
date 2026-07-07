@@ -1,5 +1,8 @@
 import { GITHUB_REPO_SLUG } from "./site";
 
+/** Server data cache TTL for GitHub star count */
+export const GITHUB_STARS_REVALIDATE = 300;
+
 export function formatStarCount(count: number): string {
   if (count >= 1_000_000) {
     return `${(count / 1_000_000).toFixed(count >= 10_000_000 ? 0 : 1)}M`;
@@ -13,15 +16,26 @@ export function formatStarCount(count: number): string {
   return count.toLocaleString("en-US");
 }
 
-/** Cached GitHub stargazers count for the HuggiMon repo */
-export async function fetchGitHubStars(): Promise<number | null> {
+function githubHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    Accept: "application/vnd.github+json",
+    "User-Agent": "HuggiMon",
+  };
+  const token = process.env.GITHUB_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
+/** GitHub stargazers count for the HuggiMon repo */
+export async function fetchGitHubStars(options?: {
+  fresh?: boolean;
+}): Promise<number | null> {
   try {
     const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO_SLUG}`, {
-      next: { revalidate: 3600 },
-      headers: {
-        Accept: "application/vnd.github+json",
-        "User-Agent": "HuggiMon",
-      },
+      ...(options?.fresh
+        ? { cache: "no-store" }
+        : { next: { revalidate: GITHUB_STARS_REVALIDATE, tags: ["github-stars"] } }),
+      headers: githubHeaders(),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { stargazers_count?: number };

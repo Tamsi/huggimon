@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GITHUB_REPO } from "@/lib/site";
 import { HowItWorksDialog } from "./HowItWorksDialog";
 
@@ -31,8 +31,27 @@ type Props = {
   stars: number | null;
 };
 
-export function HeaderNav({ starsLabel, stars }: Props) {
+export function HeaderNav({ starsLabel: initialLabel, stars: initialStars }: Props) {
   const [howOpen, setHowOpen] = useState(false);
+  const [starsLabel, setStarsLabel] = useState(initialLabel);
+  const [stars, setStars] = useState(initialStars);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/github/stars")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { stars?: number | null; label?: string | null } | null) => {
+        if (cancelled || !data || data.stars == null || data.label == null) return;
+        setStars(data.stars);
+        setStarsLabel(data.label);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>
