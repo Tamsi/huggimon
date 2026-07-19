@@ -13,23 +13,21 @@ const EMPTY: PopupAnchor = {
   width: 0,
   height: 0,
 };
+
 export function usePopupAnchor(
   ref: RefObject<HTMLElement | null>,
   active: boolean,
   layout = false,
 ): PopupAnchor {
-  const [anchor, setAnchor] = useState<PopupAnchor>(EMPTY);
+  const [liveAnchor, setLiveAnchor] = useState<PopupAnchor>(EMPTY);
 
   useEffect(() => {
-    if (!active) {
-      setAnchor(EMPTY);
-      return;
-    }
+    if (!active) return;
 
     let raf = 0;
     const tick = () => {
       const next = measurePopoverAnchor(ref, layout);
-      if (next) setAnchor(next);
+      if (next) setLiveAnchor(next);
       raf = requestAnimationFrame(tick);
     };
 
@@ -37,5 +35,5 @@ export function usePopupAnchor(
     return () => cancelAnimationFrame(raf);
   }, [active, ref, layout]);
 
-  return anchor;
+  return active ? liveAnchor : EMPTY;
 }

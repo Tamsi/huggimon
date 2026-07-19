@@ -28,8 +28,10 @@ export function useBinderSpread({
   opened,
   singlePage = false,
 }: Options) {
-  const cacheRef = useRef(new Map<number, BinderPageData>());
-  cacheRef.current.set(initialPage.pageIndex, initialPage);
+  const [cache, setCache] = useState(
+    () => new Map<number, BinderPageData>([[initialPage.pageIndex, initialPage]]),
+  );
+  const cacheRef = useRef(cache);
 
   const [spread, setSpread] = useState(0);
   const [pageIndex, setPageIndex] = useState(initialPage.pageIndex);
@@ -40,6 +42,10 @@ export function useBinderSpread({
   const pendingAnimRef = useRef<TurnDir | null>(null);
   const frozenSpreadRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    cacheRef.current = cache;
+  }, [cache]);
+
   const totalPages = initialPage.totalPages;
   const maxSpread = Math.floor(totalPages / 2);
 
@@ -48,14 +54,15 @@ export function useBinderSpread({
   const getPage = useCallback(
     (index: number): BinderPageData | null => {
       if (index < 0 || index >= totalPages) return null;
-      return cacheRef.current.get(index) ?? null;
+      return cache.get(index) ?? null;
     },
-    [totalPages],
+    [totalPages, cache],
   );
 
   const fetchPage = useCallback(
     async (index: number): Promise<BinderPageData | null> => {
       if (index < 0 || index >= totalPages) return null;
+
       const cached = cacheRef.current.get(index);
       if (cached) return cached;
 
@@ -64,7 +71,12 @@ export function useBinderSpread({
       );
       if (!res.ok) return null;
       const data = (await res.json()) as BinderPageData;
-      cacheRef.current.set(index, data);
+      setCache((prev) => {
+        if (prev.has(index)) return prev;
+        const next = new Map(prev);
+        next.set(index, data);
+        return next;
+      });
       return data;
     },
     [username, totalPages],
@@ -171,18 +183,6 @@ export function useBinderSpread({
     },
     [opened, singlePage, pageIndex, totalPages, spread, maxSpread, fetchPage],
   );
-
-  useEffect(() => {
-    if (opened) return;
-    flipApi.start({ rotateY: 0, immediate: true });
-    setTurning(null);
-    setFrozenSpread(null);
-    frozenSpreadRef.current = null;
-    setSpread(0);
-    setPageIndex(initialPage.pageIndex);
-    lockRef.current = false;
-    pendingAnimRef.current = null;
-  }, [opened, flipApi, initialPage.pageIndex]);
 
   const viewSpread = frozenSpread ?? spread;
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useIsClient } from "@/hooks/use-is-client";
 
 type Props = {
   open: boolean;
@@ -56,11 +57,7 @@ const VARIANT_LEVELS = [
 export function HowItWorksDialog({ open, onClose }: Props) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isClient = useIsClient();
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -81,7 +78,7 @@ export function HowItWorksDialog({ open, onClose }: Props) {
     };
   }, [open, onKeyDown]);
 
-  if (!open || !mounted) return null;
+  if (!open || !isClient) return null;
 
   return createPortal(
     <div className="hk-modal" role="presentation" onClick={onClose}>

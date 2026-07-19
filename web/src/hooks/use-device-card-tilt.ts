@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { clamp } from "@/lib/math";
 
 type DeviceOrientationEventWithPermission = typeof DeviceOrientationEvent & {
@@ -58,13 +58,26 @@ function canUseCoarsePointerTilt(): boolean {
   );
 }
 
+function probeDeviceTiltPermission(): DeviceTiltPermission {
+  if (typeof window === "undefined") return "unknown";
+  if (!canUseCoarsePointerTilt()) return "unsupported";
+  if (!needsExplicitOrientationPermission()) return "granted";
+  return "unknown";
+}
+
+const subscribeNoop = () => () => {};
+
 export function useDeviceCardTilt({ enabled, onInteract }: Options) {
-  const [permission, setPermission] = useState<DeviceTiltPermission>(() => {
-    if (typeof window === "undefined") return "unknown";
-    if (!canUseCoarsePointerTilt()) return "unsupported";
-    if (!needsExplicitOrientationPermission()) return "granted";
-    return "unknown";
-  });
+  const [userPermission, setUserPermission] = useState<DeviceTiltPermission | null>(
+    null,
+  );
+  const probedPermission = useSyncExternalStore(
+    subscribeNoop,
+    probeDeviceTiltPermission,
+    () => "unknown" as DeviceTiltPermission,
+  );
+  const permission: DeviceTiltPermission =
+    userPermission ?? (enabled ? probedPermission : "unknown");
   const pointerDownRef = useRef(false);
   const enabledRef = useRef(enabled);
   const permissionRef = useRef(permission);
@@ -83,20 +96,9 @@ export function useDeviceCardTilt({ enabled, onInteract }: Options) {
     onInteractRef.current = onInteract;
   }, [onInteract]);
 
-  useEffect(() => {
-    if (!enabled) return;
-    if (!canUseCoarsePointerTilt()) {
-      setPermission("unsupported");
-      return;
-    }
-    if (!needsExplicitOrientationPermission()) {
-      setPermission("granted");
-    }
-  }, [enabled]);
-
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!canUseCoarsePointerTilt()) {
-      setPermission("unsupported");
+      setUserPermission("unsupported");
       return false;
     }
 
@@ -105,15 +107,15 @@ export function useDeviceCardTilt({ enabled, onInteract }: Options) {
       try {
         const state = await ctor.requestPermission();
         const granted = state === "granted";
-        setPermission(granted ? "granted" : "denied");
+        setUserPermission(granted ? "granted" : "denied");
         return granted;
       } catch {
-        setPermission("denied");
+        setUserPermission("denied");
         return false;
       }
     }
 
-    setPermission("granted");
+    setUserPermission("granted");
     return true;
   }, []);
 

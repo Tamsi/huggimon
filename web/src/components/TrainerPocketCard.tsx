@@ -1,7 +1,7 @@
 "use client";
 
 import { animated, to } from "@react-spring/web";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { BinderPopoverPortal } from "@/components/BinderPopoverPortal";
 import { TrainerMiniCard } from "@/components/TrainerMiniCard";
 import { useBinderPopover } from "@/hooks/use-binder-popover";
@@ -33,11 +33,7 @@ export function TrainerPocketCard({ card, binderOpen }: Props) {
   });
 
   const layoutAnchor = usePopupAnchor(anchorRef, Boolean(popover.active && binderOpen), true);
-
-  useEffect(() => {
-    if (!popover.active) return;
-    tilt.setInteracting(true);
-  }, [popover.active, tilt.setInteracting]);
+  const showInteracting = tilt.interacting || popover.active;
 
   const popStyle = {
     transform: to(
@@ -80,7 +76,7 @@ export function TrainerPocketCard({ card, binderOpen }: Props) {
         }}
       >
         <animated.div className="hpkt-tilt" style={tilt.tiltStyle}>
-          <TrainerMiniCard card={card} interacting={tilt.interacting || popover.active} />
+          <TrainerMiniCard card={card} interacting={showInteracting} />
         </animated.div>
       </button>
     </animated.div>

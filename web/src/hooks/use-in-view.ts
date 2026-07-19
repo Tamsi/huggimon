@@ -39,8 +39,8 @@ export function useInView<T extends Element = Element>({
     };
 
     if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
-      return;
+      const raf = requestAnimationFrame(() => setInView(true));
+      return () => cancelAnimationFrame(raf);
     }
 
     const observer = new IntersectionObserver(

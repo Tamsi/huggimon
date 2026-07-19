@@ -166,13 +166,15 @@ export function PokemonCard({
     [setSprings, idleOpacity, usesPopover, popover.active],
   );
 
-  onInteractEndRef.current = interactEnd;
+  useEffect(() => {
+    onInteractEndRef.current = interactEnd;
+  }, [interactEnd]);
 
   const active = usesPopover ? popover.active : flipActive;
+  const showInteracting = interacting || (usesPopover && popover.active);
 
   useEffect(() => {
     if (!usesPopover || !popover.active) return;
-    setInteracting(true);
     api.start({ opacity: 1, config: SPRING_INTERACT });
   }, [usesPopover, popover.active, api]);
 
@@ -209,7 +211,7 @@ export function PokemonCard({
         { x: px, y: py, o: 1 },
       );
     },
-    [setSprings, pocket, binderActive?.activeKey, card.username],
+    [setSprings, pocket, binderActive, card.username],
   );
 
   const gyroEligible = gyroTilt || (pocket && isCoarsePointer);
@@ -354,7 +356,7 @@ export function PokemonCard({
     typeClass,
     pocket || (expandOnTap && active) ? "hpk-pocket" : "",
     active ? "active" : "",
-    interacting ? "interacting" : "",
+    showInteracting ? "interacting" : "",
     loading ? "loading" : "",
     variant.masked ? "masked" : "",
   ]
@@ -376,6 +378,8 @@ export function PokemonCard({
 
   const renderCardFace = () => (
     <div className="card__front" style={{ ...staticStyles, ...foilStyles }}>
+      {/* Dynamic API / data-URI face — next/image is a poor fit here */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={faceImage}
         alt={`Front of ${card.displayName} trainer card`}
@@ -420,6 +424,7 @@ export function PokemonCard({
             onBlur={preview ? undefined : () => interactEnd(0)}
           >
             {!pocket && !preview && (
+              // eslint-disable-next-line @next/next/no-img-element -- static card back asset
               <img
                 className="card__back"
                 src={CARD_BACK}

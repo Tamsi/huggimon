@@ -65,25 +65,22 @@ export function useBinderPopover({
     config: SPRING_POPOVER,
   }));
 
-  const setCenter = useCallback(
-    (_scale: number) => {
-      const anchor = measurePopoverAnchor(anchorRef, true);
-      if (!anchor) return;
+  const setCenter = useCallback(() => {
+    const anchor = measurePopoverAnchor(anchorRef, true);
+    if (!anchor) return;
 
-      const reserve =
-        linkReservePx ??
-        (sizeMode === "hero" ? 0 : LINK_RESERVE_PX / 2);
-      const centerX = anchor.rectLeft + anchor.width / 2;
-      const centerY = anchor.rectTop + anchor.height / 2;
+    const reserve =
+      linkReservePx ??
+      (sizeMode === "hero" ? 0 : LINK_RESERVE_PX / 2);
+    const centerX = anchor.rectLeft + anchor.width / 2;
+    const centerY = anchor.rectTop + anchor.height / 2;
 
-      popApi.start({
-        tx: round(window.innerWidth / 2 - centerX),
-        ty: round(window.innerHeight / 2 - centerY - reserve),
-        config: SPRING_POPOVER,
-      });
-    },
-    [anchorRef, popApi, linkReservePx, sizeMode],
-  );
+    popApi.start({
+      tx: round(window.innerWidth / 2 - centerX),
+      ty: round(window.innerHeight / 2 - centerY - reserve),
+      config: SPRING_POPOVER,
+    });
+  }, [anchorRef, popApi, linkReservePx, sizeMode]);
 
   const retreat = useCallback(() => {
     popApi.start({
@@ -114,7 +111,7 @@ export function useBinderPopover({
       },
       sizeMode,
     );
-    setCenter(scale);
+    setCenter();
     onOpen?.();
 
     if (firstPopRef.current) {
@@ -161,7 +158,7 @@ export function useBinderPopover({
     const onResize = () => {
       const s = popSprings.scale.get();
       if (s > 1) {
-        setCenter(s);
+        setCenter();
         if (sizeMode === "hero") popover();
       }
     };

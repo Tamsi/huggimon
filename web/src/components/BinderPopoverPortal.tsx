@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useIsClient } from "@/hooks/use-is-client";
 import { usePopupAnchor } from "@/hooks/use-popup-anchor";
 import type { PopupAnchor } from "@/lib/popover-anchor";
 
@@ -55,10 +56,8 @@ function PopoverLink({
 }
 
 export function BinderPopoverPortal({ open, anchorRef, pageUrl, onClose, children }: Props) {
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const anchor = usePopupAnchor(anchorRef, open);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -69,7 +68,7 @@ export function BinderPopoverPortal({ open, anchorRef, pageUrl, onClose, childre
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (!mounted || !open) return null;
+  if (!isClient || !open) return null;
 
   const showLink = Boolean(pageUrl && anchor.height > 4);
 
