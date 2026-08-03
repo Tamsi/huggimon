@@ -198,6 +198,15 @@ export function HowItWorksDialog({ open, onClose }: Props) {
               </li>
             </ul>
           </section>
+
+          <section className="hk-modal__section">
+            <h3 className="hk-modal__section-title">Trainer battles</h3>
+            <p className="hk-modal__section-desc">
+              From a profile, hit Fight and enter another Hugging Face username. An automated duel
+              plays out from each card&apos;s HP, attacks, energy, and type weakness — classic battle
+              screen, shareable result URL.
+            </p>
+          </section>
         </div>
       </div>
     </div>,
