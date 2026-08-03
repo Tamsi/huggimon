@@ -1,6 +1,7 @@
 "use client";
 
-import { type RefObject } from "react";
+import { type RefObject, useState } from "react";
+import { FightChallengeModal } from "@/components/battle/FightChallengeModal";
 import { useCardGif } from "@/hooks/use-card-gif";
 import { GITHUB_REPO } from "@/lib/site";
 
@@ -21,6 +22,7 @@ export function ProfileActions({
   displayName,
   profileUrl,
 }: Props) {
+  const [fightOpen, setFightOpen] = useState(false);
   const { busy, toast, copyLink, downloadCard, copyCard } = useCardGif(
     cardRef,
     username,
@@ -45,6 +47,14 @@ export function ProfileActions({
       </a>
 
       <div className="profile-actions__divider" />
+
+      <button
+        type="button"
+        onClick={() => setFightOpen(true)}
+        className="profile-action profile-action--fight"
+      >
+        Fight
+      </button>
 
       <button type="button" onClick={() => void copyLink()} className="profile-action">
         Copy link
@@ -77,6 +87,12 @@ export function ProfileActions({
           {toast}
         </div>
       )}
+
+      <FightChallengeModal
+        open={fightOpen}
+        onClose={() => setFightOpen(false)}
+        challenger={username}
+      />
     </div>
   );
 }
