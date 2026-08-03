@@ -1,21 +1,30 @@
 import { fetchHfProfile } from "./hf-fetcher";
 import { buildCard, type CardData } from "./scoring";
 
+/** Trim + strip @, preserve HF username casing (author queries are case-sensitive). */
+export function cleanUsername(raw: string): string {
+  return raw.trim().replace(/^@/, "");
+}
+
+export function usernamesEqual(a: string, b: string): boolean {
+  return cleanUsername(a).toLowerCase() === cleanUsername(b).toLowerCase();
+}
+
 export function normalizeUsername(raw: string): string {
-  return raw.trim().replace(/^@/, "").toLowerCase();
+  return cleanUsername(raw);
 }
 
 export async function loadBattleCards(
   challengerRaw: string,
   opponentRaw: string,
 ): Promise<{ challenger: CardData; opponent: CardData }> {
-  const challengerName = normalizeUsername(challengerRaw);
-  const opponentName = normalizeUsername(opponentRaw);
+  const challengerName = cleanUsername(challengerRaw);
+  const opponentName = cleanUsername(opponentRaw);
 
   if (!challengerName || !opponentName) {
     throw Object.assign(new Error("Username required"), { status: 400 });
   }
-  if (challengerName === opponentName) {
+  if (usernamesEqual(challengerName, opponentName)) {
     throw Object.assign(new Error("Choose a different opponent"), { status: 400 });
   }
 

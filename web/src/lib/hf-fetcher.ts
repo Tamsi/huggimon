@@ -91,15 +91,19 @@ export const fetchHfProfile = cache(async (username: string): Promise<HfProfileD
     throw new Error(`User '${clean}' not found on Hugging Face.`);
   }
 
+  // HF author filters are case-sensitive. Overview may resolve a differently-cased
+  // URL via redirect, so always query repos with the canonical username.
+  const author = overview.user || clean;
+
   const [modelsRaw, datasetsRaw, spacesRaw] = await Promise.all([
     fetchJson<ModelItem[]>(
-      `https://huggingface.co/api/models?author=${encodeURIComponent(clean)}&limit=${MAX_ITEMS}`,
+      `https://huggingface.co/api/models?author=${encodeURIComponent(author)}&limit=${MAX_ITEMS}`,
     ).catch(() => [] as ModelItem[]),
     fetchJson<DatasetItem[]>(
-      `https://huggingface.co/api/datasets?author=${encodeURIComponent(clean)}&limit=${MAX_ITEMS}`,
+      `https://huggingface.co/api/datasets?author=${encodeURIComponent(author)}&limit=${MAX_ITEMS}`,
     ).catch(() => [] as DatasetItem[]),
     fetchJson<SpaceItem[]>(
-      `https://huggingface.co/api/spaces?author=${encodeURIComponent(clean)}&limit=${MAX_ITEMS}`,
+      `https://huggingface.co/api/spaces?author=${encodeURIComponent(author)}&limit=${MAX_ITEMS}`,
     ).catch(() => [] as SpaceItem[]),
   ]);
 
@@ -140,8 +144,8 @@ export const fetchHfProfile = cache(async (username: string): Promise<HfProfileD
 
   return {
     user: {
-      username: overview.user || clean,
-      displayName: overview.fullname ?? overview.user ?? clean,
+      username: author,
+      displayName: overview.fullname ?? author,
       avatarUrl: overview.avatarUrl ?? null,
       numFollowers: overview.numFollowers ?? 0,
       numFollowing: overview.numFollowing ?? 0,
