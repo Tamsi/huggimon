@@ -14,7 +14,7 @@
     "@resvg/resvg-js": "^2.6.2",
     "gifenc": "^1.0.3",
     "html-to-image": "^1.11.13",
-    "next": "16.2.10",
+    "next": "^16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "sharp": "^0.35.3"
@@ -25,12 +25,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "^16.2.12",
     "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
   "overrides": {
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.10",
+    "sharp": "^0.35.3"
   }
 }
