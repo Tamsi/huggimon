@@ -19,8 +19,14 @@ type InternalFighter = {
 function pickMove(card: CardData): { name: string; damage: number; cost: number } {
   const rows = attackRows(card).map(([name, damage, cost]) => ({ name, damage, cost }));
   const affordable = rows.filter((r) => r.cost <= card.energyCount);
-  const pool = affordable.length > 0 ? affordable : rows;
-  return pool.reduce((best, r) => (r.damage > best.damage ? r : best));
+  if (affordable.length > 0) {
+    return affordable.reduce((best, r) => (r.damage > best.damage ? r : best));
+  }
+  return rows.reduce((best, r) => {
+    if (r.cost < best.cost) return r;
+    if (r.cost === best.cost && r.damage > best.damage) return r;
+    return best;
+  });
 }
 
 function effectiveness(

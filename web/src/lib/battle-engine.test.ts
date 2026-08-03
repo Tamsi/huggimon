@@ -111,4 +111,26 @@ describe("simulateBattle", () => {
     // affordable: Small Hit
     assert.equal(move.move, "Small Hit");
   });
+
+  it("picks the cheapest move when none are affordable", () => {
+    const card = mockCard({
+      username: "broke",
+      type: "Normal",
+      energyCount: 0,
+      stats: { model: 90, data: 30, space: 10, impact: 10, community: 10, docs: 10 },
+      attacks: ["Big Hit", "Small Hit"],
+    });
+    const fodder = mockCard({
+      username: "fodder",
+      type: "Normal",
+      level: 1,
+      energyCount: 1,
+      stats: { model: 10, data: 10, space: 1, impact: 10, community: 10, docs: 10 },
+    });
+    const result = simulateBattle(card, fodder, "move-cheapest");
+    const move = result.events.find((e) => e.type === "move" && e.actor === "challenger");
+    assert.ok(move && move.type === "move");
+    // model=90 → damage 90, cost 3; data=30 → damage 30, cost 1 — none affordable at energy 0
+    assert.equal(move.move, "Small Hit");
+  });
 });
