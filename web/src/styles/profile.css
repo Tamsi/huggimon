@@ -169,6 +169,16 @@
   color: #fff !important;
 }
 
+.profile-action--fight {
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+
+.profile-action--fight:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
 .profile-action__icon {
   font-size: 16px;
   line-height: 1;
