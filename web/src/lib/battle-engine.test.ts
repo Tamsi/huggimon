@@ -37,7 +37,7 @@ describe("simulateBattle", () => {
     assert.equal(r1.winner, r2.winner);
   });
 
-  it("marks Fire vs Water defender as not_very when attacker is Fire and weakness(Fire)=Water", () => {
+  it("marks Water attacking Fire as super effective", () => {
     // Fire is weak to Water → Water attacking Fire is super; Fire attacking Water is not_very
     const fire = mockCard({
       username: "ember",

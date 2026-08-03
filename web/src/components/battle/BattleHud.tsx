@@ -64,7 +64,7 @@ function FighterBlock({
 
 export function BattleHud({ opponent, challenger, hp }: Props) {
   return (
-    <div className="battle-field" aria-live="polite">
+    <div className="battle-field">
       <FighterBlock fighter={opponent} currentHp={hp.opponent} side="opponent" />
       <FighterBlock fighter={challenger} currentHp={hp.challenger} side="challenger" />
     </div>

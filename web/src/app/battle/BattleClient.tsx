@@ -60,13 +60,14 @@ export function BattleClient() {
 
   useEffect(() => {
     if (!a || !b) return;
+    if (seed && result?.seed === seed) return;
 
     const timeout = window.setTimeout(() => {
       void runBattle(a, b, seed || undefined);
     }, 0);
 
     return () => window.clearTimeout(timeout);
-  }, [a, b, seed, runBattle]);
+  }, [a, b, seed, result?.seed, runBattle]);
 
   if (!a || !b) {
     return (
@@ -115,7 +116,6 @@ export function BattleClient() {
       key={result.seed}
       result={result}
       onRematch={() => {
-        setResult(null);
         router.replace(`/battle?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);
       }}
     />

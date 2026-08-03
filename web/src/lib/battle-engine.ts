@@ -85,9 +85,7 @@ export function simulateBattle(
   const hp = { challenger: a.hp, opponent: b.hp };
   const events: BattleEvent[] = [{ type: "start" }];
 
-  const aFirst =
-    a.card.stats.space > b.card.stats.space ||
-    (a.card.stats.space === b.card.stats.space);
+  const aFirst = a.card.stats.space >= b.card.stats.space;
 
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const order: InternalFighter[] = aFirst ? [a, b] : [b, a];

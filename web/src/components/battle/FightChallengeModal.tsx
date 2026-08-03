@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useIsClient } from "@/hooks/use-is-client";
@@ -13,7 +13,6 @@ type Props = {
 
 export function FightChallengeModal({ open, onClose, challenger }: Props) {
   const titleId = useId();
-  const panelRef = useRef<HTMLDivElement>(null);
   const isClient = useIsClient();
   const router = useRouter();
   const [opponent, setOpponent] = useState("");
@@ -31,7 +30,6 @@ export function FightChallengeModal({ open, onClose, challenger }: Props) {
     document.addEventListener("keydown", onKeyDown);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    panelRef.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = prev;
@@ -43,7 +41,6 @@ export function FightChallengeModal({ open, onClose, challenger }: Props) {
   return createPortal(
     <div className="hk-modal" role="presentation" onClick={onClose}>
       <div
-        ref={panelRef}
         className="hk-modal__panel"
         role="dialog"
         aria-modal="true"

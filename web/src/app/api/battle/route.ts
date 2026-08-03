@@ -10,13 +10,20 @@ function errorResponse(error: unknown) {
     typeof (error as { status: unknown }).status === "number"
       ? (error as { status: number }).status
       : 500;
-  const message = error instanceof Error ? error.message : "Battle failed";
+  const message = status !== 500 && error instanceof Error ? error.message : "Battle failed";
   return NextResponse.json({ error: message }, { status });
 }
 
 export async function POST(req: Request) {
+  let body: { challenger?: string; opponent?: string };
+
   try {
-    const body = (await req.json()) as { challenger?: string; opponent?: string };
+    body = (await req.json()) as { challenger?: string; opponent?: string };
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  try {
     const { challenger, opponent } = await loadBattleCards(
       body.challenger ?? "",
       body.opponent ?? "",
