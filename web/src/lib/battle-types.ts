@@ -12,6 +12,7 @@ export type BattleEvent =
       move: string;
       damage: number;
       effective: BattleEffectiveness;
+      critical: boolean;
       hpAfter: { challenger: number; opponent: number };
     }
   | { type: "faint"; actor: BattleActor }

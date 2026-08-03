@@ -95,7 +95,7 @@ export function BattleClient() {
   }
 
   if (loading && !result) {
-    return <p className="battle-dialogue__text">Trainers are entering the arena…</p>;
+    return <p className="battle-loading">Trainer {b} would like to battle!</p>;
   }
 
   if (error) {

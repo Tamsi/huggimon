@@ -51,7 +51,12 @@ function applyMove(
   const move = pickMove(attacker.card);
   const { multiplier, effective } = effectiveness(attacker.card, defender.card);
   const varianceFactor = 1 + (rng.nextFloat() * 0.1 - 0.05);
-  const damage = Math.max(1, Math.floor(move.damage * multiplier * varianceFactor));
+  const critical = rng.nextFloat() < 0.1;
+  const critMul = critical ? 1.5 : 1;
+  const damage = Math.max(
+    1,
+    Math.floor(move.damage * multiplier * varianceFactor * critMul),
+  );
   defender.hp = Math.max(0, defender.hp - damage);
   hp[defender.actor] = defender.hp;
   return {
@@ -60,6 +65,7 @@ function applyMove(
     move: move.name,
     damage,
     effective,
+    critical,
     hpAfter: { challenger: hp.challenger, opponent: hp.opponent },
   };
 }
